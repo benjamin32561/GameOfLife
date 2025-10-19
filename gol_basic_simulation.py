@@ -5,7 +5,50 @@ Sprint 1: Simple single-file implementation
 
 import sys
 import argparse
-from typing import List
+from typing import List, Tuple
+from itertools import product
+
+
+def get_grid_dimensions(grid: List[List[int]]) -> Tuple[int, int]:
+    """
+    Get grid dimensions (height, width).
+    
+    Args:
+        grid: 2D list representing the grid
+        
+    Returns:
+        Tuple of (height, width)
+    """
+    height = len(grid)
+    width = len(grid[0]) if height > 0 else 0
+    return height, width
+
+
+def is_valid_position(x: int, y: int, height: int, width: int) -> bool:
+    """
+    Check if position is within grid bounds.
+    
+    Args:
+        x: Row index
+        y: Column index
+        height: Grid height
+        width: Grid width
+        
+    Returns:
+        True if position is valid, False otherwise
+    """
+    return 0 <= x < height and 0 <= y < width
+
+
+def get_neighbor_offsets() -> List[Tuple[int, int]]:
+    """
+    Get all 8 neighbor offsets (excluding center).
+    
+    Returns:
+        List of (dx, dy) tuples for 8-connectivity
+    """
+    return [(dx, dy) for dx, dy in product([-1, 0, 1], [-1, 0, 1]) 
+            if not (dx == 0 and dy == 0)]
 
 
 def load_grid_from_file(filepath: str) -> List[List[int]]:
@@ -41,8 +84,7 @@ def display_grid(grid: List[List[int]], generation: int) -> None:
         grid: 2D list representing the grid
         generation: Current generation number
     """
-    height = len(grid)
-    width = len(grid[0]) if height > 0 else 0
+    height, width = get_grid_dimensions(grid)
     
     print(f"Generation {generation}:")
     
@@ -71,24 +113,17 @@ def count_live_neighbors(grid: List[List[int]], x: int, y: int) -> int:
     Returns:
         Number of live neighbors
     """
-    height = len(grid)
-    width = len(grid[0]) if height > 0 else 0
+    height, width = get_grid_dimensions(grid)
     count = 0
     
-    # Check all 8 neighbors
-    for dx in [-1, 0, 1]:
-        for dy in [-1, 0, 1]:
-            # Skip the cell itself
-            if dx == 0 and dy == 0:
-                continue
-            
-            neighbor_x = x + dx
-            neighbor_y = y + dy
-            
-            # Check if neighbor is within bounds
-            if 0 <= neighbor_x < height and 0 <= neighbor_y < width:
-                if grid[neighbor_x][neighbor_y] == 1:
-                    count += 1
+    # Check all 8 neighbors using itertools
+    for dx, dy in get_neighbor_offsets():
+        neighbor_x = x + dx
+        neighbor_y = y + dy
+        
+        if is_valid_position(neighbor_x, neighbor_y, height, width):
+            if grid[neighbor_x][neighbor_y] == 1:
+                count += 1
     
     return count
 
@@ -141,17 +176,14 @@ def step(grid: List[List[int]]) -> List[List[int]]:
     Returns:
         New grid with next generation state
     """
-    height = len(grid)
-    width = len(grid[0]) if height > 0 else 0
+    height, width = get_grid_dimensions(grid)
     
     # Create a fresh grid for the next generation
     next_grid = [[0 for _ in range(width)] for _ in range(height)]
     
-    # Update each cell based on current state
-    # Iterate top to bottom, left to right
-    for x in range(height):
-        for y in range(width):
-            next_grid[x][y] = apply_rules(grid, x, y)
+    # Update each cell based on current state using itertools
+    for x, y in product(range(height), range(width)):
+        next_grid[x][y] = apply_rules(grid, x, y)
     
     return next_grid
 
