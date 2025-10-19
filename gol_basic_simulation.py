@@ -4,6 +4,7 @@ Sprint 1: Simple single-file implementation
 """
 
 import sys
+import argparse
 from typing import List
 
 
@@ -159,46 +160,53 @@ def main() -> None:
     """
     Main entry point - run the Game of Life simulation.
     """
-    if len(sys.argv) < 2:
-        print("Usage: python gol_basic_simulation.py <initial_state_file> [num_steps]")
-        print("\nExample:")
-        print("  python gol_basic_simulation.py init_states/glider.txt 10")
-        print("\nArguments:")
-        print("  initial_state_file: Path to txt file with initial configuration")
-        print("  num_steps: Number of generations to run (default: 10)")
-        sys.exit(1)
+    parser = argparse.ArgumentParser(
+        description="Conway's Game of Life - Basic Simulation",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python gol_basic_simulation.py init_states/glider.txt
+  python gol_basic_simulation.py init_states/glider.txt --steps 20
+  python gol_basic_simulation.py init_states/pulsar.txt --steps 15
+        """
+    )
     
-    filepath = sys.argv[1]
-    num_steps = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+    parser.add_argument(
+        'filepath',
+        help='Path to txt file with initial configuration'
+    )
     
-    try:
-        # Load initial state
-        print(f"Loading initial state from: {filepath}")
-        grid = load_grid_from_file(filepath)
+    parser.add_argument(
+        '--steps', '-s',
+        type=int,
+        default=10,
+        help='Number of generations to run (default: 10)'
+    )
+    
+    args = parser.parse_args()
+    
+    filepath = args.filepath
+    num_steps = args.steps
+    
+    # Load initial state
+    print(f"Loading initial state from: {filepath}")
+    grid = load_grid_from_file(filepath)
         
-        print("Conway's Game of Life - Basic Simulation")
-        print("=" * 50)
-        print(f"Running for {num_steps} generations\n")
-        
-        # Display initial state (generation 0)
-        display_grid(grid, 0)
-        
-        # Run simulation for num_steps generations
-        for t in range(1, num_steps + 1):
-            # Create a fresh grid and update based on current grid
-            grid = step(grid)
-            # Display the new generation
-            display_grid(grid, t)
-        
-        print("Simulation complete!")
-        
-    except FileNotFoundError:
-        print(f"Error: File not found: {filepath}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Error: {e}")
-        sys.exit(1)
-
-
+    print("Conway's Game of Life - Basic Simulation")
+    print("=" * 50)
+    print(f"Running for {num_steps} generations\n")
+    
+    # Display initial state (generation 0)
+    display_grid(grid, 0)
+    
+    # Run simulation for num_steps generations
+    for t in range(1, num_steps + 1):
+        # Create a fresh grid and update based on current grid
+        grid = step(grid)
+        # Display the new generation
+        display_grid(grid, t)
+    
+    print("Simulation complete!")
+       
 if __name__ == "__main__":
     main()
