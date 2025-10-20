@@ -168,7 +168,7 @@ class GOLGrid:
                 x, y = random.choice(empty_cells)
                 self.grid[x][y].append(object_to_add)
 
-    def add_herbivore_to_random_place(self, x, y):
+    def add_herbivore_to_random_neighboor(self, x, y):
         """
         When 2 herbivores are in the same cell, they reproduce, staying in the same space and spawning another herbivore in a random neighboring cell.
         The new herbivore need to be created in a random neighboring cell, but not on the same cell as the mating herbivores.
@@ -408,6 +408,12 @@ class Herbivore(MobileEntity):
         self.T_cooldown = 0
         self.base_T_cooldown = T_cooldown
     
+    def can_mate(self):
+        """
+        Check if the herbivore can mate.
+        """
+        return self.T_cooldown <= 0
+
     def reset_mating_cooldown(self):
         """
         Reset the mating cooldown of the herbivore.
@@ -432,37 +438,28 @@ class Herbivore(MobileEntity):
         self.ttl -= 1
 
         # move towards the closest plant
-        new_x, new_y = self.get_next_position(grid, Plant)
+        new_x, new_y = self.get_next_position(gol_grid, Plant)
         
-        # check if next position contains a predator, if so, die
-        if len(grid[new_x][new_y]) > 0 and gol_grid.is_object_type_in_cell(x, y, Predator):
-            return False, -1, -1
-                
-        # check if next position contains a herbivore, if so, reproduce, staying in the same space and spawning another herbivore in a random neighboring cell.
-        if len(grid[new_x][new_y]) > 0 and gol_grid.is_object_type_in_cell(x, y, Herbivore):
-            # check if any other herbivore is in the same cell, if so,
-            # check if they can both reproduce, reset their cooldown and create a new herbivore
-            other_herbivores = gol_grid.is_object_type_in_cell(new_x, new_y, Herbivore)
-            
-            if len(other_herbivores) >= 1:  # At least one other herbivore in the cell
-                # Check if both herbivores can reproduce (cooldown is 0)
-                can_reproduce = (self.T_cooldown <= 0 and 
-                                all(herb.T_cooldown <= 0 for herb in other_herbivores))
-                
-                if can_reproduce:
-                    # Reset cooldowns for all herbivores involved
-                    self.reset_mating_cooldown()
-                    for herb in other_herbivores:
-                        herb.reset_mating_cooldown()
-                    
-                    # Create new herbivore in a random neighboring cell
-                    success = grid.add_herbivore_to_random_place(new_x, new_y)
-                    
-            return True, new_x, new_y
+        # check if next position contains a herbivore, if so,
+        # reproduce, spawning another herbivore in a random neighboring cell.
+        if gol_grid.is_object_type_in_cell(new_x, new_y, Herbivore) and self.can_mate():
+            # check if there is at least one other herbivore in the cell that can mate, if so,
+            # reproduce, reset their cooldown and create a new herbivore
+            mateable_herbivores = [herbivore for herbivore in gol_grid.grid[new_x][new_y] if isinstance(herbivore, Herbivore) and herbivore.can_mate()]
+
+            if len(mateable_herbivores) >= 1:
+                mate_herbivore = mateable_herbivores[0]
+                # reset mating cooldown for both herbivors
+                mate_herbivore.reset_mating_cooldown()
+                self.reset_mating_cooldown()
+
+                # generate a new herbivorein the grid
+                gol_grid.add_herbivore_to_random_neighboor()
 
         # check if next position has a plant in it, if so 
-        if len(grid[new_x][new_y]) > 0 and isinstance(grid[new_x][new_y][0], Plant):
+        if gol_grid.is_object_type_in_cell(new_x, new_y, Plant):
             grid.grid[new_x][new_y] = [obj for obj in grid.grid[new_x][new_y] if not isinstance(obj, Plant)]
+            self.reset_ttl()
 
         return True, new_x, new_y
 
@@ -489,18 +486,15 @@ class Predator(MobileEntity):
         
         # reduce ttl
         self.ttl -= 1
-        
-        # move towards the closest Herbivore
-        new_x, new_y = self.get_next_position(grid, Herbivore)
-        
-        # check if next position contains a herbivore, if so, remove it and reinit the ttl of the predator
-        if len(grid[new_x][new_y]) > 0 and isinstance(grid[new_x][new_y][0], Herbivore):
-            grid.grid[new_x][new_y] = [obj for obj in grid.grid[new_x][new_y] if not isinstance(obj, Herbivore)]
-            self.reset_ttl()
-            return True, new_x, new_y
 
-        # check if next position has a plant in it, if so, delete it
-        if len(grid[new_x][new_y]) > 0 and isinstance(grid[new_x][new_y][0], Plant):
-            grid.grid[new_x][new_y] = [obj for obj in grid.grid[new_x][new_y] if not isinstance(obj, Plant)]
+        # move towards the closest plant
+        new_x, new_y = self.get_next_position(gol_grid, Herbivore)
+        
+        # check if next position contains a herbivore, if so,
+        # remove it, and reset the ttl of the current predator
+        if gol_grid.is_object_type_in_cell(new_x, new_y, Herbivore):
+            grid.grid[new_x][new_y] = [obj for obj in grid.grid[new_x][new_y] if not isinstance(obj, Herbivore)]
+
+            self.reset_ttl()
 
         return True, new_x, new_y
