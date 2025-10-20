@@ -1,12 +1,12 @@
 """
 Entity classes for the Nature Ecosystem Simulation
 """
-from .Entity import Entity
-from .MobileEntity import MobileEntity
-from .Plant import Plant
-from .Herbivore import Herbivore
-from .Predator import Predator
-from .GOLGrid import GOLGrid
+from entities.entity import Entity
+from entities.entity_factory import EntityFactory
+from entities.gol_grid import GOLGrid
+from entities.herbivore import Herbivore
+from entities.mobile_entity import MobileEntity
+from entities.plant import Plant
+from entities.predator import Predator
 
-__all__ = ['Entity', 'MobileEntity', 'Plant', 'Herbivore', 'Predator', 'GOLGrid']
-
+__all__ = ['Entity', 'MobileEntity', 'Plant', 'Herbivore', 'Predator', 'GOLGrid', 'EntityFactory']

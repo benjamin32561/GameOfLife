@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional, Tuple
 import yaml
 
 if TYPE_CHECKING:
-    from .GOLGrid import GOLGrid
+    from entities.gol_grid import GOLGrid
 
 
 class Entity:

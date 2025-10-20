@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from .MobileEntity import MobileEntity
-from .Plant import Plant
+from entities.mobile_entity import MobileEntity
+from entities.plant import Plant
 
 if TYPE_CHECKING:
-    from .GOLGrid import GOLGrid
+    from entities.gol_grid import GOLGrid
 
 
 class Herbivore(MobileEntity):
@@ -16,23 +16,23 @@ class Herbivore(MobileEntity):
         Herbivores move towards the closest plant they can see in a (R_herbivore_sight) radius, if they don’t have a plant in sight, they move randomly.
         When an herbivore reaches a plant, it eats it, refueling its life span
         Herbivores reproduce when reaching another herbivore, staying in the same space and spawning another herbivore in a random neighboring cell.
-        After reproducing, they can’t reproduce anymore for T_cooldown steps.
+        After reproducing, they can’t reproduce anymore for mating_cool_down steps.
         """
         super().__init__(x, y, base_ttl, sight_radius)
-        self.T_cooldown = 0
-        self.base_T_cooldown = T_cooldown
+        self.mating_cool_down = 0
+        self.base_mating_cool_down = T_cooldown
     
     def can_mate(self) -> bool:
         """
         Check if the herbivore can mate.
         """
-        return self.T_cooldown <= 0
+        return self.mating_cool_down <= 0
 
     def reset_mating_cooldown(self) -> None:
         """
         Reset the mating cooldown of the herbivore.
         """
-        self.T_cooldown = self.base_T_cooldown
+        self.mating_cool_down = self.base_mating_cool_down
     
     def update(self, gol_grid: 'GOLGrid') -> Tuple[bool, int, int]:
         """

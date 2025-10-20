@@ -1,9 +1,9 @@
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from .Entity import Entity
+from entities.entity import Entity
 
 if TYPE_CHECKING:
-    from .GOLGrid import GOLGrid
+    from entities.gol_grid import GOLGrid
 
 
 class Plant(Entity):

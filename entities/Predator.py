@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, Optional, Tuple
 
-from .Herbivore import Herbivore
-from .MobileEntity import MobileEntity
+from entities.herbivore import Herbivore
+from entities.mobile_entity import MobileEntity
 
 if TYPE_CHECKING:
-    from .GOLGrid import GOLGrid
+    from entities.gol_grid import GOLGrid
 
 
 class Predator(MobileEntity):

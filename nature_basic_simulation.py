@@ -9,10 +9,10 @@ from time import sleep
 import cv2
 import numpy as np
 
-from entities.GOLGrid import GOLGrid
-from entities.Herbivore import Herbivore
-from entities.Plant import Plant
-from entities.Predator import Predator
+from entities.gol_grid import GOLGrid
+from entities.herbivore import Herbivore
+from entities.plant import Plant
+from entities.predator import Predator
 
 # Hard-coded configuration
 CONFIG_FILE = "nature_example.yaml"
