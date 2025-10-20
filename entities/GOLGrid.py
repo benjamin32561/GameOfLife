@@ -155,22 +155,21 @@ class GOLGrid:
         """
         return len(self.grid[x][y]) > 0 and any(isinstance(entity, object_type) for entity in self.grid[x][y])
 
-    def randomly_add_object(self, object_to_add):
+    def randomly_add_plant(self):
         """
-        Randomly add an object to the grid.
-        Generating random number between 0 and 1, if it is more the 0.5, add a plant to the grid.
+        Randomly add a plant to the grid.
+        Generating random number between 0 and 1, if it is more than 0.5, add a plant to the grid.
 
         args:
             None
         returns:
             None, added a plant to the grid
         """
-
         if random.random() > 0.5:
             empty_cells = self.get_all_empty_cells()
             if empty_cells:
                 x, y = random.choice(empty_cells)
-                self.grid[x][y].append(object_to_add)
+                self.grid[x][y].append(self.create_plant(x, y))
 
     def add_herbivore_to_random_neighboor(self, x, y):
         """
@@ -212,6 +211,9 @@ class GOLGrid:
         
         # Phase 3: Update all Plants (after herbivores have moved/eaten)
         self._update_entities_by_type(Plant)
+
+        # randomly create a plant
+        self.randomly_add_plant()
     
     def _update_entities_by_type(self, entity_type):
         """
@@ -294,7 +296,7 @@ class GOLGrid:
                     elif isinstance(entity, Predator):
                         row += "X"
                     else:
-                        row += "?"
+                        row += "."
                 else:
                     row += str(len(cell))
             print(row)

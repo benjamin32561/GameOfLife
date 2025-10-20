@@ -31,7 +31,7 @@ class MobileEntity(Entity):
         all_possible_steps = gol_grid.get_all_possible_steps(self.x, self.y)
         return random.choice(all_possible_steps) 
 
-    def get_closest_plant_coordinates(self, gol_grid, object_type):
+    def get_closest_object_coordinates(self, gol_grid, object_type):
         """
         find the closest object of a given type in a given radius
 
@@ -87,7 +87,7 @@ class MobileEntity(Entity):
             The x and y coordinates of the closest object.
             -1, -1 if no object is found.
         """
-        closest_object_x, closest_object_y = self.get_closest_plant_coordinates(gol_grid, object_type)
+        closest_object_x, closest_object_y = self.get_closest_object_coordinates(gol_grid, object_type)
         if closest_object_x != -1 and closest_object_y != -1:
             return self.get_next_position_towards_object(gol_grid, closest_object_x, closest_object_y)
         else:
