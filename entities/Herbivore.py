@@ -1,9 +1,13 @@
 from .MobileEntity import MobileEntity
 from .Plant import Plant
+from typing import Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .GOLGrid import GOLGrid
 
 
 class Herbivore(MobileEntity):
-    def __init__(self, x, y, base_ttl=None, sight_radius=None, T_cooldown=None):
+    def __init__(self, x: int, y: int, base_ttl: Optional[int] = None, sight_radius: Optional[int] = None, T_cooldown: Optional[int] = None) -> None:
         """
         Herbivore object class.
 
@@ -17,19 +21,19 @@ class Herbivore(MobileEntity):
         self.T_cooldown = 0
         self.base_T_cooldown = T_cooldown
     
-    def can_mate(self):
+    def can_mate(self) -> bool:
         """
         Check if the herbivore can mate.
         """
         return self.T_cooldown <= 0
 
-    def reset_mating_cooldown(self):
+    def reset_mating_cooldown(self) -> None:
         """
         Reset the mating cooldown of the herbivore.
         """
         self.T_cooldown = self.base_T_cooldown
     
-    def update(self, gol_grid):
+    def update(self, gol_grid: 'GOLGrid') -> Tuple[bool, int, int]:
         """
         Update the herbivore.
 
@@ -46,7 +50,7 @@ class Herbivore(MobileEntity):
         # reduce ttl
         self.ttl -= 1
 
-        # move towards the closest plant
+        # move towards the closest plant or randomly
         new_x, new_y = self.get_next_position(gol_grid, Plant)
         
         # check if next position contains a herbivore, if so,

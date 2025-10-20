@@ -1,10 +1,14 @@
 from .Entity import Entity
 import random
 import math
+from typing import Tuple, Optional, Type, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .GOLGrid import GOLGrid
 
 
 class MobileEntity(Entity):
-    def __init__(self, x, y, base_ttl=None, sight_radius=None):
+    def __init__(self, x: int, y: int, base_ttl: Optional[int] = None, sight_radius: Optional[int] = None) -> None:
         """
         Mobile entity object class.
 
@@ -19,7 +23,7 @@ class MobileEntity(Entity):
         super().__init__(x, y, base_ttl)
         self.sight_radius = sight_radius
 
-    def get_random_step(self, gol_grid):
+    def get_random_step(self, gol_grid: 'GOLGrid') -> Tuple[int, int]:
         """
         Get a random step for a given position.
 
@@ -31,7 +35,7 @@ class MobileEntity(Entity):
         all_possible_steps = gol_grid.get_all_possible_steps(self.x, self.y)
         return random.choice(all_possible_steps) 
 
-    def get_closest_object_coordinates(self, gol_grid, object_type):
+    def get_closest_object_coordinates(self, gol_grid: 'GOLGrid', object_type: Type[Entity]) -> Tuple[int, int]:
         """
         Find the closest object of a given type.
 
@@ -55,7 +59,7 @@ class MobileEntity(Entity):
                 closest_coords = (x, y)
         return closest_coords
 
-    def get_next_position_towards_object(self, gol_grid, target_x, target_y):
+    def get_next_position_towards_object(self, gol_grid: 'GOLGrid', target_x: int, target_y: int) -> Tuple[int, int]:
         """
         Get the next position moving one step towards a target.
 
@@ -80,7 +84,7 @@ class MobileEntity(Entity):
                 closest_step = (step_x, step_y)
         return closest_step
 
-    def get_next_position(self, gol_grid, object_type):
+    def get_next_position(self, gol_grid: 'GOLGrid', object_type: Type[Entity]) -> Tuple[int, int]:
         """
         Find the closest object of a given type in a given radius.
 

@@ -14,12 +14,12 @@ from entities.Predator import Predator
 
 # Hard-coded configuration
 CONFIG_FILE = "nature_example.yaml"
-DELAY_BETWEEN_STEPS = 0.1  # seconds
+DELAY_BETWEEN_STEPS = 0.0  # seconds
 CELL_SIZE = 40  # pixels
 OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video
 
 
-def main():
+def main() -> None:
     """
     Main entry point - run the nature ecosystem simulation.
     """

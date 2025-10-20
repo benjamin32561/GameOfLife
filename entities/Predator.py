@@ -1,15 +1,19 @@
 from .MobileEntity import MobileEntity
 from .Herbivore import Herbivore
+from typing import Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .GOLGrid import GOLGrid
 
 
 class Predator(MobileEntity):
-    def __init__(self, x, y, base_ttl=None, sight_radius=None):
+    def __init__(self, x: int, y: int, base_ttl: Optional[int] = None, sight_radius: Optional[int] = None) -> None:
         """
         Predator object class.
         """
         super().__init__(x, y, base_ttl, sight_radius)
     
-    def update(self, gol_grid):
+    def update(self, gol_grid: 'GOLGrid') -> Tuple[bool, int, int]:
         """
         Update the predator.
 

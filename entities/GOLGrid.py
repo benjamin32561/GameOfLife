@@ -3,12 +3,14 @@ import yaml
 import random
 import numpy as np
 import cv2
+from typing import List, Tuple, Dict, Optional, Any, Type
 from .Plant import Plant
 from .Herbivore import Herbivore
 from .Predator import Predator
+from .Entity import Entity
 
 
-def validate_coordinates(x, y, grid):
+def validate_coordinates(x: int, y: int, grid: List[List[List[Entity]]]) -> bool:
     """
     validate the coordinates of the object
 
@@ -24,7 +26,7 @@ def validate_coordinates(x, y, grid):
     return True
 
 class GOLGrid:
-    def __init__(self, init_file_path=None):
+    def __init__(self, init_file_path: Optional[str] = None) -> None:
         """
         GOLGrid class.
         """
@@ -36,7 +38,7 @@ class GOLGrid:
         self.init_grid_parameters(self.config)
         self.init_grid_state(self.config)
     
-    def load_from_file(self, file_path):
+    def load_from_file(self, file_path: str) -> Dict[str, Any]:
         """
         Load simulation configuration from YAML file.
 
@@ -49,7 +51,7 @@ class GOLGrid:
             config = yaml.safe_load(file)
         return config
 
-    def init_grid_parameters(self, config):
+    def init_grid_parameters(self, config: Dict[str, Any]) -> None:
         """
         Initialize the grid parameters from the configuration.
 
@@ -62,13 +64,13 @@ class GOLGrid:
         self.height = config['simulation']['height']
         self.grid = [[[] for _ in range(self.width)] for _ in range(self.height)]
 
-    def create_plant(self, x, y):
+    def create_plant(self, x: int, y: int) -> Plant:
         """
         Create a plant object.
         """
         return Plant(x, y, self.config['parameters']['plant_lifespan'])
     
-    def create_herbivore(self, x, y):
+    def create_herbivore(self, x: int, y: int) -> Herbivore:
         """
         Create a herbivore object.
         """
@@ -78,7 +80,7 @@ class GOLGrid:
             self.config['parameters']['T_cooldown_herbivore']
         )
     
-    def create_predator(self, x, y):
+    def create_predator(self, x: int, y: int) -> Predator:
         """
         Create a predator object.
         """
@@ -87,7 +89,7 @@ class GOLGrid:
             self.config['parameters']['R_predator_sight']
         )
 
-    def init_grid_state(self, config):
+    def init_grid_state(self, config: Dict[str, Any]) -> None:
         """
         Create initial state from configuration.
         
@@ -115,7 +117,7 @@ class GOLGrid:
             predator = self.create_predator(x, y)
             self.grid[x][y].append(predator)
     
-    def get_all_possible_steps(self, x, y):
+    def get_all_possible_steps(self, x: int, y: int) -> List[Tuple[int, int]]:
         """
         Get all possible steps (step size is 1) for a given position.
 
@@ -130,7 +132,7 @@ class GOLGrid:
         all_possible_steps = [(x, y) for x, y in product(x_range, y_range) if validate_coordinates(x, y, self.grid)]
         return all_possible_steps
 
-    def get_all_cells_with_type(self, object_type):
+    def get_all_cells_with_type(self, object_type: Type[Entity]) -> List[Tuple[int, int]]:
         """
         Get all cell coordinates with an object of a given type.
 
@@ -145,19 +147,19 @@ class GOLGrid:
                 to_ret.append((x,y))
         return to_ret
 
-    def get_all_empty_cells(self):
+    def get_all_empty_cells(self) -> List[Tuple[int, int]]:
         """
         Get all empty cells in the grid.
         """
         return [(x, y) for x, y in product(range(self.width), range(self.height)) if len(self.grid[x][y]) == 0]
 
-    def is_object_type_in_cell(self, x, y, object_type):
+    def is_object_type_in_cell(self, x: int, y: int, object_type: Type[Entity]) -> bool:
         """
         Check if an object of a given type is in a given cell.
         """
         return len(self.grid[x][y]) > 0 and any(isinstance(entity, object_type) for entity in self.grid[x][y])
 
-    def randomly_add_plant(self):
+    def randomly_add_plant(self) -> None:
         """
         Randomly add a plant to the grid.
         Generating random number between 0 and 1, if it is more than 0.5, add a plant to the grid.
@@ -173,7 +175,7 @@ class GOLGrid:
                 x, y = random.choice(empty_cells)
                 self.grid[x][y].append(self.create_plant(x, y))
 
-    def add_herbivore_to_random_neighboor(self, x, y):
+    def add_herbivore_to_random_neighboor(self, x: int, y: int) -> bool:
         """
         When 2 herbivores are in the same cell, they reproduce, staying in the same space and spawning another herbivore in a random neighboring cell.
         The new herbivore need to be created in a random neighboring cell, but not on the same cell as the mating herbivores.
@@ -195,7 +197,7 @@ class GOLGrid:
             return False
         return True
 
-    def update(self):
+    def update(self) -> None:
         """
         Update the grid with type-based order: Predators -> Herbivores -> Plants
         Uses in-place updates to avoid grid copying and solve async issues.
@@ -217,7 +219,7 @@ class GOLGrid:
         # randomly create a plant
         self.randomly_add_plant()
     
-    def _update_entities_by_type(self, entity_type):
+    def _update_entities_by_type(self, entity_type: Type[Entity]) -> None:
         """
         Update all entities of a specific type in-place.
         
@@ -251,7 +253,7 @@ class GOLGrid:
                 entity.x = new_x
                 entity.y = new_y
     
-    def get_grid_stats(self):
+    def get_grid_stats(self) -> Dict[str, int]:
         """
         Get statistics about the current grid state.
         
@@ -278,7 +280,7 @@ class GOLGrid:
             'predators': predator_count
         }
     
-    def print_grid(self):
+    def print_grid(self) -> None:
         """
         Print a simple representation of the grid.
         """
@@ -303,7 +305,7 @@ class GOLGrid:
                     row += str(len(cell))
             print(row)
 
-    def grid_to_image(self, cell_size=40):
+    def grid_to_image(self, cell_size: int = 40) -> np.ndarray:
         """
         Convert GOLGrid to an image with color-coded entities.
         

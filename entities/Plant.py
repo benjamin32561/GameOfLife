@@ -1,8 +1,12 @@
 from .Entity import Entity
+from typing import Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .GOLGrid import GOLGrid
 
 
 class Plant(Entity):
-    def __init__(self, x, y, base_ttl=None):
+    def __init__(self, x: int, y: int, base_ttl: Optional[int] = None) -> None:
         """
         Plant object class.
         
@@ -13,14 +17,14 @@ class Plant(Entity):
         """
         super().__init__(x, y, base_ttl)
     
-    def get_next_position(self, gol_grid):
+    def get_next_position(self, gol_grid: 'GOLGrid') -> Tuple[int, int]:
         """
         Get the new position of the plant.
         Plants don't move, so the new position is the same as the current position.
         """
         return self.x, self.y
     
-    def update(self, gol_grid):
+    def update(self, gol_grid: 'GOLGrid') -> Tuple[bool, int, int]:
         """
         Update the plant.
         Plants don't move, but age and can be eaten.

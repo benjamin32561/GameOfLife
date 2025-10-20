@@ -2,10 +2,14 @@ from itertools import product
 import yaml
 import math
 import random
+from typing import Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .GOLGrid import GOLGrid
 
 
 class Entity:
-    def __init__(self, x, y, base_ttl=None):
+    def __init__(self, x: int, y: int, base_ttl: Optional[int] = None) -> None:
         """
         Base object class.
         """
@@ -14,7 +18,7 @@ class Entity:
         self.ttl = base_ttl
         self.base_ttl = base_ttl
     
-    def should_be_removed(self):
+    def should_be_removed(self) -> bool:
         """
         Check if the object should be removed from the simulation.
 
@@ -25,7 +29,7 @@ class Entity:
         """
         return self.ttl is not None and self.ttl <= 0
 
-    def reset_ttl(self):
+    def reset_ttl(self) -> None:
         """
         Reset the ttl of the object.
 
@@ -36,7 +40,7 @@ class Entity:
         """
         self.ttl = self.base_ttl
 
-    def get_next_position(self, gol_grid):
+    def get_next_position(self, gol_grid: 'GOLGrid') -> Tuple[int, int]:
         """
         Get the new position of the object.
 
@@ -47,7 +51,7 @@ class Entity:
         """
         pass
 
-    def update(self, gol_grid):
+    def update(self, gol_grid: 'GOLGrid') -> Tuple[bool, int, int]:
         """
         Update the object.
 

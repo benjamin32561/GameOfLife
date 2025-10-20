@@ -7,9 +7,10 @@ import sys
 import numpy as np
 import cv2
 import os
+from typing import List, Optional
 
 
-def load_grid_from_file(filepath):
+def load_grid_from_file(filepath: str) -> List[List[int]]:
     """
     Load initial grid state from a text file.
     
@@ -34,7 +35,7 @@ def load_grid_from_file(filepath):
     return grid
 
 
-def display_grid(grid, generation):
+def display_grid(grid: List[List[int]], generation: int) -> None:
     """
     Display the grid in the console.
     
@@ -59,7 +60,7 @@ def display_grid(grid, generation):
     print()
 
 
-def count_live_neighbors(grid, x, y):
+def count_live_neighbors(grid: List[List[int]], x: int, y: int) -> int:
     """
     Count the number of live neighbors for a cell at position (x, y).
     Uses 8-connectivity (all 8 surrounding cells).
@@ -94,7 +95,7 @@ def count_live_neighbors(grid, x, y):
     return count
 
 
-def apply_rules(grid, x, y):
+def apply_rules(grid: List[List[int]], x: int, y: int) -> int:
     """
     Apply Conway's Game of Life rules to determine the next state of a cell.
     
@@ -131,7 +132,7 @@ def apply_rules(grid, x, y):
             return 0  # Stays dead
 
 
-def step(grid):
+def step(grid: List[List[int]]) -> List[List[int]]:
     """
     Execute one step of the simulation.
     Creates a fresh grid and updates it based on the current grid.
@@ -157,7 +158,7 @@ def step(grid):
     return next_grid
 
 
-def grid_to_image(grid, cell_size=20):
+def grid_to_image(grid: List[List[int]], cell_size: int = 20) -> np.ndarray:
     """
     Convert grid to an image.
     
@@ -196,7 +197,7 @@ def grid_to_image(grid, cell_size=20):
     return image
 
 
-def main():
+def main() -> None:
     """
     Main entry point - run the Game of Life simulation.
     """
