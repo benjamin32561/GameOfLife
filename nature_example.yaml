@@ -6,15 +6,15 @@ simulation:
 parameters:
   # Lifespans
   plant_lifespan: 15         # T_plant
-  T_herbivore: 20            # T_herbivore
-  T_predator: 25             # T_predator
+  T_herbivore: 25            # T_herbivore
+  T_predator: 15             # T_predator
 
   # Sight radius
-  R_herbivore_sight: 3       # radius in which herbivores can see plants
-  R_predator_sight: 4        # radius in which predators can see herbivores
+  R_herbivore_sight: 5       # radius in which herbivores can see plants
+  R_predator_sight: 3        # radius in which predators can see herbivores
 
   # Reproduction cooldown
-  T_cooldown_herbivore: 5
+  T_cooldown_herbivore: 2
 
 initial_state:
   plants:

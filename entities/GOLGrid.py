@@ -1,6 +1,8 @@
 from itertools import product
 import yaml
 import random
+import numpy as np
+import cv2
 from .Plant import Plant
 from .Herbivore import Herbivore
 from .Predator import Predator
@@ -300,3 +302,74 @@ class GOLGrid:
                 else:
                     row += str(len(cell))
             print(row)
+
+    def grid_to_image(self, cell_size=40):
+        """
+        Convert GOLGrid to an image with color-coded entities.
+        
+        Args:
+            gol_grid: GOLGrid object
+            cell_size: Size of each cell in pixels
+            
+        Returns:
+            numpy array representing the image (BGR format)
+        """
+        height = self.height
+        width = self.width
+        
+        # Create image (height * cell_size, width * cell_size, 3 channels)
+        img_height = height * cell_size
+        img_width = width * cell_size
+        image = np.zeros((img_height, img_width, 3), dtype=np.uint8)
+        
+        # Background color (dark green for nature theme)
+        image[:] = [34, 139, 34]  # Forest green (BGR)
+        
+        # Color scheme:
+        # Plants: Bright green
+        # Herbivores: Yellow
+        # Predators: Red
+        
+        for y in range(height):
+            for x in range(width):
+                y1 = y * cell_size
+                y2 = y1 + cell_size
+                x1 = x * cell_size
+                x2 = x1 + cell_size
+                
+                cell_entities = self.grid[x][y]
+                
+                if not cell_entities:
+                    # Empty cell - dark background
+                    image[y1:y2, x1:x2] = [20, 60, 20]  # Dark green
+                else:
+                    # Determine dominant entity type
+                    has_predator = any(isinstance(e, Predator) for e in cell_entities)
+                    has_herbivore = any(isinstance(e, Herbivore) for e in cell_entities)
+                    has_plant = any(isinstance(e, Plant) for e in cell_entities)
+                    
+                    if has_predator:
+                        # Red for predators
+                        image[y1:y2, x1:x2] = [0, 0, 255]  # Red (BGR)
+                    elif has_herbivore:
+                        # Yellow for herbivores
+                        image[y1:y2, x1:x2] = [0, 255, 255]  # Yellow (BGR)
+                    elif has_plant:
+                        # Bright green for plants
+                        image[y1:y2, x1:x2] = [0, 255, 0]  # Bright green (BGR)
+                    
+                    # If multiple entity types, add markers
+                    if len([e for e in cell_entities if isinstance(e, (Plant, Herbivore, Predator))]) > 1:
+                        # Draw a circle to indicate multiple entities
+                        center = (x1 + cell_size // 2, y1 + cell_size // 2)
+                        cv2.circle(image, center, cell_size // 4, (255, 255, 255), 2)
+                        # Add count text
+                        count = len(cell_entities)
+                        cv2.putText(image, str(count), 
+                                (x1 + cell_size // 3, y1 + 2 * cell_size // 3),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+                
+                # Draw grid lines
+                cv2.rectangle(image, (x1, y1), (x2-1, y2-1), (100, 100, 100), 1)
+        
+        return image
