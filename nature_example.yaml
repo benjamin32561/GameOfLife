@@ -1,7 +1,7 @@
 simulation:
-  width: 10
-  height: 10
-  steps: 100   # total simulation steps
+  width: 30
+  height: 30
+  steps: 200   # total simulation steps
 
 parameters:
   # Lifespans
@@ -23,12 +23,41 @@ initial_state:
     - {x: 7, y: 2}
     - {x: 5, y: 8}
     - {x: 9, y: 4}
+    - {x: 15, y: 15}
+    - {x: 20, y: 10}
+    - {x: 12, y: 22}
+    - {x: 25, y: 5}
+    - {x: 18, y: 28}
+    - {x: 8, y: 16}
+    - {x: 22, y: 20}
+    - {x: 14, y: 8}
+    - {x: 28, y: 14}
+    - {x: 10, y: 25}
 
   herbivores:
     - {x: 2, y: 2}
     - {x: 4, y: 6}
     - {x: 8, y: 3}
+    - {x: 16, y: 14}
+    - {x: 21, y: 11}
+    - {x: 13, y: 23}
+    - {x: 26, y: 6}
+    - {x: 9, y: 17}
+    - {x: 5, y: 12}
+    - {x: 11, y: 7}
+    - {x: 19, y: 4}
+    - {x: 24, y: 19}
+    - {x: 7, y: 24}
+    - {x: 15, y: 9}
+    - {x: 28, y: 22}
+    - {x: 3, y: 18}
+    - {x: 17, y: 26}
+    - {x: 12, y: 5}
+    - {x: 22, y: 15}
+    - {x: 6, y: 29}
 
   predators:
     - {x: 6, y: 6}
     - {x: 8, y: 7}
+    - {x: 18, y: 18}
+    - {x: 24, y: 12}

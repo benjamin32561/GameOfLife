@@ -33,7 +33,7 @@ class MobileEntity(Entity):
 
     def get_closest_object_coordinates(self, gol_grid, object_type):
         """
-        find the closest object of a given type in a given radius
+        Find the closest object of a given type.
 
         args:
             gol_grid: the grid object of the simulation
@@ -43,37 +43,41 @@ class MobileEntity(Entity):
             the x and y position of the closest object
             -1, -1 if no object is found
         """
-        all_cells_with_plants = gol_grid.get_all_cells_with_type(object_type)
+        all_cells_with_objects = gol_grid.get_all_cells_with_type(object_type)
         
-        # get closest one in a radius
+        # get closest one
         closest_coords = (-1, -1)
         closest_distance = float('inf')
-        for x, y in all_cells_with_plants:
+        for x, y in all_cells_with_objects:
             distance = math.sqrt((self.x-x)**2+(self.y-y)**2)
             if distance < closest_distance:
                 closest_distance = distance
                 closest_coords = (x, y)
         return closest_coords
 
-    def get_next_position_towards_object(self, gol_grid, x, y):
+    def get_next_position_towards_object(self, gol_grid, target_x, target_y):
         """
-        Get the next position moving to the nearest 
+        Get the next position moving one step towards a target.
 
         args:
             gol_grid: the grid object of the simulation
-            x: the x position of the desired position to move towards
-            y: the y position of the desired position to move towards
+            target_x: the x position of the desired position to move towards
+            target_y: the y position of the desired position to move towards
         returns:
-            the x and y coordinates of the next position
+            the x and y coordinates of the next position (one step from current position)
         """
-        all_possible_steps = gol_grid.get_all_possible_steps(x, y)
+        # Get all possible steps from CURRENT position (self.x, self.y)
+        all_possible_steps = gol_grid.get_all_possible_steps(self.x, self.y)
+        
+        # Find which step gets us closest to the target
         closest_step = None
         closest_distance = float('inf')
-        for step in all_possible_steps:
-            distance = math.sqrt((step[0]-x)**2+(step[1]-y)**2)
+        for step_x, step_y in all_possible_steps:
+            # Calculate distance from this potential step to the target
+            distance = math.sqrt((step_x - target_x)**2 + (step_y - target_y)**2)
             if distance < closest_distance:
                 closest_distance = distance
-                closest_step = step
+                closest_step = (step_x, step_y)
         return closest_step
 
     def get_next_position(self, gol_grid, object_type):
