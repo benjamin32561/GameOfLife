@@ -39,6 +39,7 @@ class GOLGrid:
         self.grid = None
         self.width = None
         self.height = None
+        self.herbivore_reproductions = 0
         self.config = self.load_from_file(init_file_path)
         self.factory = EntityFactory(self.config)
         
@@ -176,6 +177,7 @@ class GOLGrid:
         if all_possible_steps:
             x, y = random.choice(all_possible_steps)
             self.grid[x][y].append(self.factory.create_herbivore(x, y))
+            self.herbivore_reproductions += 1
         else:
             return False
         return True
@@ -260,7 +262,8 @@ class GOLGrid:
         return {
             'plants': plant_count,
             'herbivores': herbivore_count,
-            'predators': predator_count
+            'predators': predator_count,
+            'herbivore_reproductions': self.herbivore_reproductions
         }
     
     def print_grid(self) -> None:
