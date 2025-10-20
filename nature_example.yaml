@@ -59,5 +59,4 @@ initial_state:
   predators:
     - {x: 6, y: 6}
     - {x: 8, y: 7}
-    - {x: 18, y: 18}
     - {x: 24, y: 12}
