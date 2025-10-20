@@ -6,7 +6,6 @@ from entities.plant import Plant
 if TYPE_CHECKING:
     from entities.gol_grid import GOLGrid
 
-
 class Herbivore(MobileEntity):
     def __init__(self, x: int, y: int, base_ttl: Optional[int] = None, sight_radius: Optional[int] = None, T_cooldown: Optional[int] = None) -> None:
         """

@@ -9,6 +9,10 @@ from time import sleep
 import cv2
 import numpy as np
 
+from alerts.alert_manager import AlertManager
+from alerts.entity_above_threshold_alert import EntityAboveThreshold
+from alerts.predator_eats_herbivore_alert import PredatorEatsHerbivoreAlert
+from alerts.zero_stats_alert import ZeroStatsAlert
 from entities.gol_grid import GOLGrid
 from entities.herbivore import Herbivore
 from entities.plant import Plant
@@ -29,6 +33,15 @@ def main() -> None:
     # Load configuration and initialize grid
     print(f"Loading configuration from: {CONFIG_FILE}")
     gol_grid = GOLGrid(CONFIG_FILE)
+    
+    # Setup alert system
+    alert_manager = AlertManager()
+    alert_manager.add_alert(ZeroStatsAlert('plants'))
+    alert_manager.add_alert(ZeroStatsAlert('herbivores'))
+    alert_manager.add_alert(ZeroStatsAlert('predators'))
+    alert_manager.add_alert(PredatorEatsHerbivoreAlert())
+    alert_manager.add_alert(EntityAboveThreshold('herbivores', 0.3))  # Alert when >30% of cells have herbivores
+    alert_manager.add_alert(EntityAboveThreshold('predators', 0.15))  # Alert when >15% of cells have predators
     
     num_steps = gol_grid.config['simulation']['steps']
     
@@ -78,6 +91,9 @@ def main() -> None:
         # Display the new state
         print(f"\nStep {step}:")
         gol_grid.print_grid()
+        
+        # Check and print alerts
+        alert_manager.print_alerts(gol_grid)
         
         # Write frame to video if recording
         if video_writer:
