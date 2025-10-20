@@ -1,5 +1,6 @@
+from typing import TYPE_CHECKING, Optional, Tuple
+
 from .Entity import Entity
-from typing import Optional, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .GOLGrid import GOLGrid

@@ -1,7 +1,8 @@
-from .Entity import Entity
-import random
 import math
-from typing import Tuple, Optional, Type, TYPE_CHECKING
+import random
+from typing import TYPE_CHECKING, Optional, Tuple, Type
+
+from .Entity import Entity
 
 if TYPE_CHECKING:
     from .GOLGrid import GOLGrid

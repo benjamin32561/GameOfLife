@@ -1,13 +1,15 @@
-from itertools import product
-import yaml
 import random
-import numpy as np
+from itertools import product
+from typing import Any, Dict, List, Optional, Tuple, Type
+
 import cv2
-from typing import List, Tuple, Dict, Optional, Any, Type
-from .Plant import Plant
-from .Herbivore import Herbivore
-from .Predator import Predator
+import numpy as np
+import yaml
+
 from .Entity import Entity
+from .Herbivore import Herbivore
+from .Plant import Plant
+from .Predator import Predator
 
 
 def validate_coordinates(x: int, y: int, grid: List[List[List[Entity]]]) -> bool:

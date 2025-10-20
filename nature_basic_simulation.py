@@ -2,14 +2,16 @@
 Nature Ecosystem Simulation
 Sprint 2: Predator-Prey-Plant ecosystem simulation
 """
-from time import sleep
-import sys
-import numpy as np
-import cv2
 import os
+import sys
+from time import sleep
+
+import cv2
+import numpy as np
+
 from entities.GOLGrid import GOLGrid
-from entities.Plant import Plant
 from entities.Herbivore import Herbivore
+from entities.Plant import Plant
 from entities.Predator import Predator
 
 # Hard-coded configuration

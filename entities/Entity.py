@@ -1,8 +1,9 @@
-from itertools import product
-import yaml
 import math
 import random
-from typing import Optional, Tuple, TYPE_CHECKING
+from itertools import product
+from typing import TYPE_CHECKING, Optional, Tuple
+
+import yaml
 
 if TYPE_CHECKING:
     from .GOLGrid import GOLGrid

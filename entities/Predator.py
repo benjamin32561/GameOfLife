@@ -1,6 +1,7 @@
-from .MobileEntity import MobileEntity
+from typing import TYPE_CHECKING, Optional, Tuple
+
 from .Herbivore import Herbivore
-from typing import Optional, Tuple, TYPE_CHECKING
+from .MobileEntity import MobileEntity
 
 if TYPE_CHECKING:
     from .GOLGrid import GOLGrid

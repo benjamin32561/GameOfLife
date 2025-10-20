@@ -2,12 +2,13 @@
 Conway's Game of Life - Basic Simulation
 Sprint 1: Simple single-file implementation
 """
-from time import sleep
-import sys
-import numpy as np
-import cv2
 import os
+import sys
+from time import sleep
 from typing import List, Optional
+
+import cv2
+import numpy as np
 
 
 def load_grid_from_file(filepath: str) -> List[List[int]]:
