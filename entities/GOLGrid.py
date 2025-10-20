@@ -1,4 +1,9 @@
-from 
+from itertools import product
+import yaml
+import random
+from .Plant import Plant
+from .Herbivore import Herbivore
+from .Predator import Predator
 
 
 def validate_coordinates(x, y, grid):
@@ -241,6 +246,33 @@ class GOLGrid:
                 # Update entity's internal position
                 entity.x = new_x
                 entity.y = new_y
+    
+    def get_grid_stats(self):
+        """
+        Get statistics about the current grid state.
+        
+        Returns:
+            Dictionary with entity counts
+        """
+        plant_count = 0
+        herbivore_count = 0
+        predator_count = 0
+        
+        for x in range(self.width):
+            for y in range(self.height):
+                for entity in self.grid[x][y]:
+                    if isinstance(entity, Predator):
+                        predator_count += 1
+                    elif isinstance(entity, Herbivore):
+                        herbivore_count += 1
+                    elif isinstance(entity, Plant):
+                        plant_count += 1
+        
+        return {
+            'plants': plant_count,
+            'herbivores': herbivore_count,
+            'predators': predator_count
+        }
     
     def print_grid(self):
         """

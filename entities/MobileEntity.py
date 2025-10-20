@@ -1,4 +1,7 @@
 from .Entity import Entity
+import random
+import math
+
 
 class MobileEntity(Entity):
     def __init__(self, x, y, base_ttl=None, sight_radius=None):
@@ -40,7 +43,7 @@ class MobileEntity(Entity):
             the x and y position of the closest object
             -1, -1 if no object is found
         """
-        all_cells_with_plants = gol_grid.get_all_cells_with_type(Plant)
+        all_cells_with_plants = gol_grid.get_all_cells_with_type(object_type)
         
         # get closest one in a radius
         closest_coords = (-1, -1)

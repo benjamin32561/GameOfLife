@@ -1,3 +1,6 @@
+from .MobileEntity import MobileEntity
+from .Plant import Plant
+
 
 class Herbivore(MobileEntity):
     def __init__(self, x, y, base_ttl=None, sight_radius=None, T_cooldown=None):

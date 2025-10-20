@@ -1,3 +1,5 @@
+from .MobileEntity import MobileEntity
+from .Herbivore import Herbivore
 
 
 class Predator(MobileEntity):

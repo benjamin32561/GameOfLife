@@ -1,3 +1,5 @@
+from .Entity import Entity
+
 
 class Plant(Entity):
     def __init__(self, x, y, base_ttl=None):
