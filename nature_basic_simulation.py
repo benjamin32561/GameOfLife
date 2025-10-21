@@ -35,12 +35,12 @@ def main() -> None:
     
     # Setup alert system
     alert_manager = AlertManager()
-    alert_manager.add_alert(ZeroStatsAlert('plants'))
-    alert_manager.add_alert(ZeroStatsAlert('herbivores'))
-    alert_manager.add_alert(ZeroStatsAlert('predators'))
+    alert_manager.add_alert(ZeroStatsAlert('plant'))
+    alert_manager.add_alert(ZeroStatsAlert('herbivore'))
+    alert_manager.add_alert(ZeroStatsAlert('predator'))
     alert_manager.add_alert(PredatorEatsHerbivoreAlert())
-    alert_manager.add_alert(EntityAboveThreshold('herbivores', 0.3))  # Alert when >30% of cells have herbivores
-    alert_manager.add_alert(EntityAboveThreshold('predators', 0.15))  # Alert when >15% of cells have predators
+    alert_manager.add_alert(EntityAboveThreshold('herbivore', 0.3))  # Alert when >30% of cells have herbivores
+    alert_manager.add_alert(EntityAboveThreshold('predator', 0.15))  # Alert when >15% of cells have predators
     
     num_steps = gol_grid.config['simulation']['steps']
     
