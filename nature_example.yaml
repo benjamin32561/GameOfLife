@@ -21,6 +21,12 @@ simulation:
     plant: [0, 255, 0]        # Bright green
     herbivore: [0, 255, 255]  # Yellow
     predator: [0, 0, 255]     # Red
+  
+  # Visualization settings
+  visualization:
+    cell_size: 40
+    empty_cell_color: [20, 60, 20]    # Dark green
+    background_color: [34, 139, 34]   # Forest green
 
 parameters:
   # Lifespans
