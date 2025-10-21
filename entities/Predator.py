@@ -37,8 +37,9 @@ class Predator(MobileEntity):
         # check if next position contains a herbivore, if so,
         # remove it, and reset the ttl of the current predator
         if gol_grid.is_object_type_in_cell(new_x, new_y, Herbivore):
+            herbivores_eaten = len([obj for obj in gol_grid.grid[new_x][new_y] if isinstance(obj, Herbivore)])
             gol_grid.grid[new_x][new_y] = [obj for obj in gol_grid.grid[new_x][new_y] if not isinstance(obj, Herbivore)]
-
             self.reset_ttl()
+            gol_grid.record_stat('herbivore_eaten_by_predator', herbivores_eaten)
 
         return True, new_x, new_y
