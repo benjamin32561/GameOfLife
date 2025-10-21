@@ -35,17 +35,32 @@ class TimelineSummaryAlert(BaseAlert):
     def check_events(self, current_statistics: dict) -> None:
         """
         Compare the current statistics to the previous statistics.
+        Handles nested structure with 'population' and 'events'.
         """
         if self.previous_statistics is None:
-            self.previous_statistics = current_statistics
+            self.previous_statistics = {
+                'population': current_statistics['population'].copy(),
+                'events': current_statistics['events'].copy()
+            }
             return
         
-        for key, value in current_statistics.items():
-            if key not in self.previous_statistics:
-                self.previous_statistics[key] = 0
-            if value != self.previous_statistics[key]:
-                self.events.append((self.step, f"{key} changed from {self.previous_statistics[key]} to {value}"))
-                self.previous_statistics[key] = value
+        # Track population changes
+        for key, value in current_statistics['population'].items():
+            if key == 'total':  # Skip total, it's calculated
+                continue
+            prev_value = self.previous_statistics['population'].get(key, 0)
+            if value != prev_value:
+                self.events.append((self.step, f"{key.capitalize()} population changed from {prev_value} to {value}"))
+                self.previous_statistics['population'][key] = value
+        
+        # Track significant events (new events since last check)
+        for key, value in current_statistics['events'].items():
+            prev_value = self.previous_statistics['events'].get(key, 0)
+            if value > prev_value:
+                count = value - prev_value
+                event_name = key.replace('_', ' ').title()
+                self.events.append((self.step, f"{event_name}: {count} (total: {value})"))
+                self.previous_statistics['events'][key] = value
 
     def save_to_disk(self) -> None:
         """
