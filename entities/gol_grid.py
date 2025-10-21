@@ -29,12 +29,13 @@ def validate_coordinates(x: int, y: int, grid: List[List[List[Entity]]]) -> bool
     return True
 
 class GOLGrid:
-    def __init__(self, init_file_path: str) -> None:
+    def __init__(self, init_file_path: str, order_to_process: List[Type[Entity]] = [Predator, Herbivore, Plant]) -> None:
         """
         GOLGrid class.
         
         Args:
             init_file_path: Path to the YAML configuration file (required)
+            order_to_process: The order in which to process the entities
         """
         self.grid = None
         self.width = None
@@ -42,7 +43,7 @@ class GOLGrid:
         self.herbivore_reproductions = 0
         self.config = self.load_from_file(init_file_path)
         self.factory = EntityFactory(self.config)
-        
+        self.order_to_process = order_to_process
         self.init_grid_parameters(self.config)
         self.init_grid_state(self.config)
     
@@ -76,30 +77,19 @@ class GOLGrid:
     def init_grid_state(self, config: Dict[str, Any]) -> None:
         """
         Create initial state from configuration.
+        The factory now handles the decision of which entities to create.
         
         args:
-            config: the configuration
+            config: the configuration (kept for interface consistency)
         returns:
             None, updated the internal grid with the initial state
         """
-
-        # Add plants
-        for plant_data in config['initial_state']['plants']:
-            x, y = plant_data['x'], plant_data['y']
-            plant = self.factory.create_plant(x, y)
-            self.grid[x][y].append(plant)
+        # Let the factory decide which entities to create based on config
+        entities = self.factory.create_initial_entities()
         
-        # Add herbivores
-        for herb_data in config['initial_state']['herbivores']:
-            x, y = herb_data['x'], herb_data['y']
-            herbivore = self.factory.create_herbivore(x, y)
-            self.grid[x][y].append(herbivore)
-        
-        # Add predators
-        for pred_data in config['initial_state']['predators']:
-            x, y = pred_data['x'], pred_data['y']
-            predator = self.factory.create_predator(x, y)
-            self.grid[x][y].append(predator)
+        # Place all entities in the grid
+        for entity, x, y in entities:
+            self.grid[x][y].append(entity)
     
     def get_all_possible_steps(self, x: int, y: int) -> List[Tuple[int, int]]:
         """
@@ -192,14 +182,8 @@ class GOLGrid:
         returns:
             None, updated the internal grid with the next state
         """
-        # Phase 1: Update all Predators first
-        self._update_entities_by_type(Predator)
-        
-        # Phase 2: Update all Herbivores (after predators have moved/died)
-        self._update_entities_by_type(Herbivore)
-        
-        # Phase 3: Update all Plants (after herbivores have moved/eaten)
-        self._update_entities_by_type(Plant)
+        for entity_type in self.order_to_process:
+            self._update_entities_by_type(entity_type)
 
         # randomly create a plant
         self.randomly_add_plant()
