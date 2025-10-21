@@ -20,7 +20,10 @@ class StatisticsOverTimeAlert(BaseAlert):
 
         Args:
             save_fig_path: The path to save the figure to
-            keys_to_plot: The keys to plot, if None, all keys will be plotted. Keys must be in the grid_stats of the simulation.
+            keys_to_plot: The keys to plot. Can include:
+                         - Population keys (lowercase entity names): 'plant', 'herbivore', 'predator'
+                         - Event keys: 'herbivore_reproduced', 'plant_eaten_by_herbivore', etc.
+                         If None, all population counts will be plotted.
             
         Returns:
             None, initialized the alert
@@ -65,6 +68,7 @@ class StatisticsOverTimeAlert(BaseAlert):
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:
         """
         Collect statistics at each step (but don't generate plot yet).
+        Handles the nested statistics structure with 'population' and 'events'.
         
         Args:
             gol_grid: The grid object of the simulation
@@ -73,9 +77,18 @@ class StatisticsOverTimeAlert(BaseAlert):
             None, just collecting data
         """
         current_stats = gol_grid.get_grid_stats()
-        for key in current_stats.keys():
+        
+        # Collect population data
+        for key, value in current_stats['population'].items():
             if key not in self.statistics_over_time:
                 self.statistics_over_time[key] = []
-            self.statistics_over_time[key].append(current_stats[key])
+            self.statistics_over_time[key].append(value)
+        
+        # Collect event data
+        for key, value in current_stats['events'].items():
+            if key not in self.statistics_over_time:
+                self.statistics_over_time[key] = []
+            self.statistics_over_time[key].append(value)
+        
         return None
 
