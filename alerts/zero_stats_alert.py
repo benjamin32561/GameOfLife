@@ -16,13 +16,14 @@ class ZeroStatsAlert(BaseAlert):
         Initialize alert for tracking entity extinction.
 
         Args:
-            stats_type: The type of entity to alert on ('plants', 'herbivores', or 'predators')
+            stats_type: The type of entity to alert on (e.g., 'plant', 'herbivore', 'predator').
             
         Returns:
             None, initialized the alert
         """
         super().__init__()
-        self.stats_type = stats_type
+        # Normalize entity type 
+        self.stats_type = stats_type.lower()
         self.message = f"No {stats_type} entities left"
     
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:
@@ -36,5 +37,7 @@ class ZeroStatsAlert(BaseAlert):
             Alert message if entity count is zero, None otherwise
         """
         grid_stats = gol_grid.get_grid_stats()
-        return self.message if grid_stats[self.stats_type] == 0 else None
+        population = grid_stats['population']
+        current_count = population.get(self.stats_type, 0)
+        return self.message if current_count == 0 else None
 

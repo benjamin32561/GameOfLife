@@ -41,7 +41,6 @@ class GOLGrid:
         self.grid = None
         self.width = None
         self.height = None
-        self.herbivore_reproductions = 0
         self.config = self.load_from_file(init_file_path)
         self.factory = EntityFactory(self.config)
         
