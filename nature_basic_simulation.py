@@ -46,8 +46,8 @@ def main() -> None:
     alert_manager.add_alert(EntityAboveThreshold('predator', 0.15))  # Alert when >15% of cells have predators
     
     # Setup statistics tracking and plotting
-    alert_manager.add_alert(StatisticsOverTimeAlert('organisms_over_time.png', ['plants', 'herbivores', 'predators']))
-    alert_manager.add_alert(StatisticsOverTimeAlert('herbivore_reproductions_over_time.png', ['herbivore_reproductions']))
+    alert_manager.add_alert(StatisticsOverTimeAlert('organisms_over_time.png', ['plant', 'herbivore', 'predator']))
+    alert_manager.add_alert(StatisticsOverTimeAlert('herbivore_reproductions_over_time.png', ['herbivore_reproduced']))
     alert_manager.add_alert(TimelineSummaryAlert('timeline_summary.txt'))
     
     num_steps = gol_grid.config['simulation']['steps']
