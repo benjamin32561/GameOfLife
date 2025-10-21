@@ -17,7 +17,6 @@ from entities.predator import Predator
 # Hard-coded configuration
 CONFIG_FILE = "nature_example.yaml"
 DELAY_BETWEEN_STEPS = 0.0  # seconds
-CELL_SIZE = 40  # pixels
 OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video
 
 
@@ -53,7 +52,7 @@ def main() -> None:
             os.makedirs(output_dir)
         
         # Get first frame to determine size
-        first_frame = gol_grid.grid_to_image(cell_size=CELL_SIZE)
+        first_frame = gol_grid.grid_to_image()
         height, width = first_frame.shape[:2]
         
         # Setup video writer (5 fps)
@@ -81,12 +80,13 @@ def main() -> None:
         
         # Write frame to video if recording
         if video_writer:
-            frame = gol_grid.grid_to_image(cell_size=CELL_SIZE)
+            frame = gol_grid.grid_to_image()
             video_writer.write(frame)
         
         # Check if ecosystem is extinct
         stats = gol_grid.get_grid_stats()
-        if stats['plants'] == 0 and stats['herbivores'] == 0 and stats['predators'] == 0:
+        population = stats['population']
+        if population.get('plant', 0) == 0 and population.get('herbivore', 0) == 0 and population.get('predator', 0) == 0:
             print("\n*** Ecosystem extinct! Simulation ended early. ***")
             break
         
@@ -100,9 +100,8 @@ def main() -> None:
     print("\nSimulation complete!")
     print("\nFinal statistics:")
     final_stats = gol_grid.get_grid_stats()
-    print(f"  Plants: {final_stats['plants']}")
-    print(f"  Herbivores: {final_stats['herbivores']}")
-    print(f"  Predators: {final_stats['predators']}")
+    print(f"  Population: {final_stats['population']}")
+    print(f"  Events: {final_stats['events']}")
 
 
 if __name__ == "__main__":

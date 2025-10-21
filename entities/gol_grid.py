@@ -29,20 +29,31 @@ def validate_coordinates(x: int, y: int, grid: List[List[List[Entity]]]) -> bool
     return True
 
 class GOLGrid:
-    def __init__(self, init_file_path: str, order_to_process: List[Type[Entity]] = [Predator, Herbivore, Plant]) -> None:
+    def __init__(self, init_file_path: str) -> None:
         """
         GOLGrid class.
         
         Args:
             init_file_path: Path to the YAML configuration file (required)
-            order_to_process: The order in which to process the entities
+        
+        Note: All configuration is loaded from the YAML file.
         """
         self.grid = None
         self.width = None
         self.height = None
         self.config = self.load_from_file(init_file_path)
         self.factory = EntityFactory(self.config)
-        self.order_to_process = order_to_process
+        
+        # Load all configuration from YAML
+        self.order_to_process = self._load_order_to_process_from_config()
+        self.random_spawn_config = self._load_random_spawn_config_from_config()
+        self.entity_color_map = self._load_entity_color_map_from_config()
+        self.visualization_settings = self._load_visualization_settings_from_config()
+        
+        # Initialize statistics tracking
+        self.statistics = {}
+        self.reset_statistics()
+        
         self.init_grid_parameters(self.config)
         self.init_grid_state(self.config)
     
@@ -58,6 +69,68 @@ class GOLGrid:
         with open(file_path, 'r') as file:
             config = yaml.safe_load(file)
         return config
+    
+    def _load_order_to_process_from_config(self) -> List[Type[Entity]]:
+        """
+        Load entity processing order from YAML configuration.
+        Converts string entity names to class types using the factory's mapping.
+        Assumes YAML contains all required settings.
+        
+        Returns:
+            List of entity types in processing order
+        """
+        entity_names = self.config['simulation']['order_to_process']
+        entity_types = []
+        for name in entity_names:
+            entity_types.append(self.factory.ENTITY_TYPE_MAP[name])
+        return entity_types
+    
+    def _load_random_spawn_config_from_config(self) -> Dict[Type[Entity], Dict[str, Any]]:
+        """
+        Load random spawn configuration from YAML.
+        Converts string entity names to class types using the factory's mapping.
+        Assumes YAML contains all required settings.
+        
+        Returns:
+            Dictionary mapping entity types to spawn configuration
+        """
+        yaml_spawn_config = self.config['simulation']['random_spawn_config']
+        spawn_config = {}
+        for entity_name, params in yaml_spawn_config.items():
+            spawn_config[self.factory.ENTITY_TYPE_MAP[entity_name]] = params
+        return spawn_config
+    
+    def _load_entity_color_map_from_config(self) -> Dict[str, Tuple[int, int, int]]:
+        """
+        Load entity color map from YAML.
+        Converts color arrays to tuples.
+        Assumes YAML contains all required settings.
+        
+        Returns:
+            Dictionary mapping entity type names (lowercase) to BGR color tuples
+        """
+        yaml_color_map = self.config['simulation']['entity_color_map']
+        color_map = {}
+        for entity_name, color in yaml_color_map.items():
+            # Convert list to tuple (YAML arrays become Python lists)
+            color_map[entity_name.lower()] = tuple(color)
+        return color_map
+    
+    def _load_visualization_settings_from_config(self) -> Dict[str, Any]:
+        """
+        Load visualization settings from YAML.
+        Converts color arrays to tuples.
+        Assumes YAML contains all required settings.
+        
+        Returns:
+            Dictionary with visualization settings
+        """
+        vis_config = self.config['simulation']['visualization']
+        return {
+            'cell_size': vis_config['cell_size'],
+            'empty_cell_color': tuple(vis_config['empty_cell_color']),
+            'background_color': tuple(vis_config['background_color'])
+        }
 
     def init_grid_parameters(self, config: Dict[str, Any]) -> None:
         """
@@ -125,6 +198,26 @@ class GOLGrid:
         Get all empty cells in the grid.
         """
         return [(x, y) for x, y in product(range(self.width), range(self.height)) if len(self.grid[x][y]) == 0]
+    
+    def reset_statistics(self) -> None:
+        """
+        Reset all statistics to zero.
+        This is called at initialization and can be called manually to reset tracking.
+        Statistics are created dynamically as events occur, so this just clears the dictionary.
+        """
+        self.statistics = {}
+    
+    def record_stat(self, stat_name: str, value: int = 1) -> None:
+        """
+        Record a statistic event. Creates the stat if it doesn't exist.
+        
+        Args:
+            stat_name: Name of the statistic to record
+            value: Value to add to the statistic (default: 1)
+        """
+        if stat_name not in self.statistics:
+            self.statistics[stat_name] = 0
+        self.statistics[stat_name] += value
 
     def is_object_type_in_cell(self, x: int, y: int, object_type: Type[Entity]) -> bool:
         """
@@ -132,59 +225,103 @@ class GOLGrid:
         """
         return len(self.grid[x][y]) > 0 and any(isinstance(entity, object_type) for entity in self.grid[x][y])
 
-    def randomly_add_plant(self) -> None:
+    def add_entity_in_range(self, entity_type: Type[Entity], center_x: int, center_y: int, 
+                           range_distance: int = 0, exclude_center: bool = False,
+                           only_empty_cells: bool = False) -> bool:
         """
-        Randomly add a plant to the grid.
-        Generating random number between 0 and 1, if it is more than 0.5, add a plant to the grid.
-
-        args:
-            None
-        returns:
-            None, added a plant to the grid
+        Add an entity of the specified type to a random cell within a given range.
+        
+        Args:
+            entity_type: Type of entity to create (e.g., Plant, Herbivore, Predator)
+            center_x: Center x coordinate
+            center_y: Center y coordinate
+            range_distance: Distance from center (0 = same cell, 1 = immediate neighbors, etc.)
+            exclude_center: Whether to exclude the center cell from possible locations
+            only_empty_cells: Whether to only consider empty cells
+            
+        Returns:
+            True if entity was successfully added, False otherwise
         """
-        if random.random() > 0.5:
-            empty_cells = self.get_all_empty_cells()
-            if empty_cells:
-                x, y = random.choice(empty_cells)
-                self.grid[x][y].append(self.factory.create_plant(x, y))
-
-    def add_herbivore_to_random_neighboor(self, x: int, y: int) -> bool:
+        # Calculate range bounds
+        x_range = range(max(0, center_x - range_distance), min(self.width, center_x + range_distance + 1))
+        y_range = range(max(0, center_y - range_distance), min(self.height, center_y + range_distance + 1))
+        
+        # Get all possible cells within range
+        possible_cells = [(x, y) for x, y in product(x_range, y_range) 
+                         if validate_coordinates(x, y, self.grid)]
+        
+        # Filter based on constraints
+        if exclude_center and (center_x, center_y) in possible_cells:
+            possible_cells.remove((center_x, center_y))
+        
+        if only_empty_cells:
+            possible_cells = [(x, y) for x, y in possible_cells if len(self.grid[x][y]) == 0]
+        
+        # Add entity if possible
+        if possible_cells:
+            new_x, new_y = random.choice(possible_cells)
+            entity = self.factory.create_entity(entity_type, new_x, new_y)
+            self.grid[new_x][new_y].append(entity)
+            return True
+        return False
+    
+    def randomly_add_entity(self, entity_type: Type[Entity], probability: float = 0.5, 
+                           only_empty_cells: bool = True) -> bool:
         """
-        When 2 herbivores are in the same cell, they reproduce, staying in the same space and spawning another herbivore in a random neighboring cell.
-        The new herbivore need to be created in a random neighboring cell, but not on the same cell as the mating herbivores.
-
-        args:
-            x: the x position of the mating herbivores
-            y: the y position of the matingherbivores
-        returns:
-            None, added a herbivore to the grid
+        Randomly add an entity to the grid with a given probability.
+        
+        Args:
+            entity_type: Type of entity to create (e.g., Plant, Herbivore, Predator)
+            probability: Probability of adding the entity (0.0 to 1.0)
+            only_empty_cells: Whether to only add to empty cells
+            
+        Returns:
+            True if entity was added, False otherwise
         """
-        x_range = range(max(0, x - 1), min(self.width, x + 2))
-        y_range = range(max(0, y - 1), min(self.height, y + 2))
-        all_possible_steps = [(x, y) for x, y in product(x_range, y_range) if validate_coordinates(x, y, self.grid)]
-        all_possible_steps.remove((x, y))
-        if all_possible_steps:
-            x, y = random.choice(all_possible_steps)
-            self.grid[x][y].append(self.factory.create_herbivore(x, y))
-        else:
+        if (1-random.random()) >= probability:
             return False
-        return True
+        
+        # Get available cells
+        if only_empty_cells:
+            available_cells = self.get_all_empty_cells()
+        else:
+            available_cells = [(x, y) for x, y in product(range(self.width), range(self.height))]
+        
+        # Add entity if possible
+        if available_cells:
+            x, y = random.choice(available_cells)
+            entity = self.factory.create_entity(entity_type, x, y)
+            self.grid[x][y].append(entity)
+            
+            # Track spawning statistics
+            entity_name = entity_type.__name__.lower()
+            self.record_stat(f'{entity_name}_spawned', 1)
+            
+            return True
+        return False
 
     def update(self) -> None:
         """
-        Update the grid with type-based order: Predators -> Herbivores -> Plants
+        Update the grid with type-based order (configured in order_to_process).
         Uses in-place updates to avoid grid copying and solve async issues.
+        After updating all entities, randomly spawn new entities based on random_spawn_config.
         
         args:
             None
         returns:
             None, updated the internal grid with the next state
         """
+        # Update all entities in the specified order
         for entity_type in self.order_to_process:
             self._update_entities_by_type(entity_type)
 
-        # randomly create a plant
-        self.randomly_add_plant()
+        # Randomly spawn new entities based on configuration
+        for entity_type, spawn_params in self.random_spawn_config.items():
+            self.randomly_add_entity(
+                entity_type,
+                probability=spawn_params.get('probability', 0.5),
+                only_empty_cells=spawn_params.get('only_empty_cells', True)
+            )
     
     def _update_entities_by_type(self, entity_type: Type[Entity]) -> None:
         """
@@ -219,39 +356,66 @@ class GOLGrid:
                 # Update entity's internal position
                 entity.x = new_x
                 entity.y = new_y
+            else:
+                # Entity died - track death statistics
+                entity_name = entity_type.__name__.lower()
+                self.record_stat(f'{entity_name}_died_naturally', 1)
     
-    def get_grid_stats(self) -> Dict[str, int]:
+    def get_population_counts(self) -> Dict[str, int]:
         """
-        Get statistics about the current grid state.
+        Get current population counts for all entity types (fully abstract).
+        Dynamically counts any entity type present in the grid.
         
         Returns:
-            Dictionary with entity counts
+            Dictionary with entity type names as keys and counts as values
         """
-        plant_count = 0
-        herbivore_count = 0
-        predator_count = 0
+        entity_counts = {}
         
         for x in range(self.width):
             for y in range(self.height):
                 for entity in self.grid[x][y]:
-                    if isinstance(entity, Predator):
-                        predator_count += 1
-                    elif isinstance(entity, Herbivore):
-                        herbivore_count += 1
-                    elif isinstance(entity, Plant):
-                        plant_count += 1
+                    # Get the entity type name (e.g., "Plant", "Herbivore", "Predator")
+                    entity_type_name = type(entity).__name__.lower()
+                    
+                    # Initialize counter if this is the first entity of this type
+                    if entity_type_name not in entity_counts:
+                        entity_counts[entity_type_name] = 0
+                    
+                    # Increment the count
+                    entity_counts[entity_type_name] += 1
         
-        return {
-            'plants': plant_count,
-            'herbivores': herbivore_count,
-            'predators': predator_count
+        return entity_counts
+    
+    def get_grid_stats(self) -> Dict[str, Any]:
+        """
+        Get comprehensive statistics about the current grid state (fully abstract).
+        Works with any entity types present in the grid.
+        
+        Returns:
+            Dictionary with current population counts and cumulative event statistics
+        """
+        population = self.get_population_counts()
+        total_population = sum(population.values())
+        
+        # Combine current population with cumulative statistics
+        stats = {
+            'population': {
+                **population,  # Spread all entity type counts
+                'total': total_population
+            },
+            'events': self.statistics.copy()
         }
+        
+        return stats
     
     def print_grid(self) -> None:
         """
-        Print a simple representation of the grid.
+        Print a simple representation of the grid (fully abstract).
+        Uses first letter of entity type name for display.
         """
-        print(f"Grid Stats: {self.get_grid_stats()}")
+        stats = self.get_grid_stats()
+        print(f"Population: {stats['population']}")
+        print(f"Events: {stats['events']}")
         for y in range(self.height):
             row = ""
             for x in range(self.width):
@@ -260,44 +424,35 @@ class GOLGrid:
                     row += "."
                 elif len(cell) == 1:
                     entity = cell[0]
-                    if isinstance(entity, Plant):
-                        row += "P"
-                    elif isinstance(entity, Herbivore):
-                        row += "H"
-                    elif isinstance(entity, Predator):
-                        row += "X"
-                    else:
-                        row += "."
+                    # Use first letter of entity type name (uppercase)
+                    entity_type_name = type(entity).__name__
+                    row += entity_type_name[0].upper() if entity_type_name else "?"
                 else:
                     row += str(len(cell))
             print(row)
 
-    def grid_to_image(self, cell_size: int = 40) -> np.ndarray:
+    def grid_to_image(self) -> np.ndarray:
         """
-        Convert GOLGrid to an image with color-coded entities.
-        
-        Args:
-            gol_grid: GOLGrid object
-            cell_size: Size of each cell in pixels
+        Convert GOLGrid to an image with color-coded entities (fully abstract).
+        Works with any entity types using the entity_color_map.
+        All visualization settings are loaded from YAML configuration.
             
         Returns:
             numpy array representing the image (BGR format)
         """
         height = self.height
         width = self.width
+        cell_size = self.visualization_settings['cell_size']
+        empty_cell_color = self.visualization_settings['empty_cell_color']
+        background_color = self.visualization_settings['background_color']
         
         # Create image (height * cell_size, width * cell_size, 3 channels)
         img_height = height * cell_size
         img_width = width * cell_size
         image = np.zeros((img_height, img_width, 3), dtype=np.uint8)
         
-        # Background color (dark green for nature theme)
-        image[:] = [34, 139, 34]  # Forest green (BGR)
-        
-        # Color scheme:
-        # Plants: Bright green
-        # Herbivores: Yellow
-        # Predators: Red
+        # Background color
+        image[:] = background_color
         
         for y in range(height):
             for x in range(width):
@@ -309,26 +464,28 @@ class GOLGrid:
                 cell_entities = self.grid[x][y]
                 
                 if not cell_entities:
-                    # Empty cell - dark background
-                    image[y1:y2, x1:x2] = [20, 60, 20]  # Dark green
+                    # Empty cell
+                    image[y1:y2, x1:x2] = empty_cell_color
                 else:
-                    # Determine dominant entity type
-                    has_predator = any(isinstance(e, Predator) for e in cell_entities)
-                    has_herbivore = any(isinstance(e, Herbivore) for e in cell_entities)
-                    has_plant = any(isinstance(e, Plant) for e in cell_entities)
+                    # Determine dominant entity type based on processing order
+                    # (entities processed first have visual priority)
+                    cell_color = None
+                    for entity_type in self.order_to_process:
+                        if any(isinstance(e, entity_type) for e in cell_entities):
+                            entity_type_name = entity_type.__name__.lower()
+                            cell_color = self.entity_color_map.get(entity_type_name, (128, 128, 128))
+                            break
                     
-                    if has_predator:
-                        # Red for predators
-                        image[y1:y2, x1:x2] = [0, 0, 255]  # Red (BGR)
-                    elif has_herbivore:
-                        # Yellow for herbivores
-                        image[y1:y2, x1:x2] = [0, 255, 255]  # Yellow (BGR)
-                    elif has_plant:
-                        # Bright green for plants
-                        image[y1:y2, x1:x2] = [0, 255, 0]  # Bright green (BGR)
+                    # If no color found in processing order, use first entity's type
+                    if cell_color is None and cell_entities:
+                        entity_type_name = type(cell_entities[0]).__name__.lower()
+                        cell_color = self.entity_color_map.get(entity_type_name, (128, 128, 128))
                     
-                    # If multiple entity types, add markers
-                    if len([e for e in cell_entities if isinstance(e, (Plant, Herbivore, Predator))]) > 1:
+                    if cell_color:
+                        image[y1:y2, x1:x2] = cell_color
+                    
+                    # If multiple entities, add visual indicator
+                    if len(cell_entities) > 1:
                         # Draw a circle to indicate multiple entities
                         center = (x1 + cell_size // 2, y1 + cell_size // 2)
                         cv2.circle(image, center, cell_size // 4, (255, 255, 255), 2)
