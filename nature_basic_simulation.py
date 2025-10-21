@@ -8,10 +8,12 @@ from time import sleep
 
 import cv2
 import numpy as np
+from tqdm import tqdm
 
 from alerts.alert_manager import AlertManager
 from alerts.entity_above_threshold_alert import EntityAboveThreshold
 from alerts.predator_eats_herbivore_alert import PredatorEatsHerbivoreAlert
+from alerts.statistics_over_time_alert import StatisticsOverTimeAlert
 from alerts.zero_stats_alert import ZeroStatsAlert
 from entities.gol_grid import GOLGrid
 from entities.herbivore import Herbivore
@@ -22,7 +24,9 @@ from entities.predator import Predator
 CONFIG_FILE = "nature_example.yaml"
 DELAY_BETWEEN_STEPS = 0.0  # seconds
 CELL_SIZE = 40  # pixels
-OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video
+OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video, or None to disable
+PRINT_GRID = False  # Set to True to print grid each step (slows down simulation significantly)
+PRINT_ALERTS = True  # Set to True to print alerts during simulation
 
 
 def main() -> None:
@@ -42,6 +46,12 @@ def main() -> None:
     alert_manager.add_alert(PredatorEatsHerbivoreAlert())
     alert_manager.add_alert(EntityAboveThreshold('herbivores', 0.3))  # Alert when >30% of cells have herbivores
     alert_manager.add_alert(EntityAboveThreshold('predators', 0.15))  # Alert when >15% of cells have predators
+    
+    # Setup statistics tracking and plotting
+    organisms_plot = StatisticsOverTimeAlert('organisms_over_time.png', ['plants', 'herbivores', 'predators'])
+    reproductions_plot = StatisticsOverTimeAlert('herbivore_reproductions_over_time.png', ['herbivore_reproductions'])
+    alert_manager.add_alert(organisms_plot)
+    alert_manager.add_alert(reproductions_plot)
     
     num_steps = gol_grid.config['simulation']['steps']
     
@@ -84,7 +94,7 @@ def main() -> None:
     gol_grid.print_grid()
     
     # Run simulation
-    for step in range(1, num_steps + 1):
+    for step in tqdm(range(1, num_steps + 1), desc="Running simulation"):
         # Update the grid
         gol_grid.update()
         
@@ -119,6 +129,15 @@ def main() -> None:
     print(f"  Plants: {final_stats['plants']}")
     print(f"  Herbivores: {final_stats['herbivores']}")
     print(f"  Predators: {final_stats['predators']}")
+    print(f"  Total Herbivore Reproductions: {final_stats['herbivore_reproductions']}")
+    
+    # Generate plots at the end (much faster than generating every step!)
+    print("\nGenerating plots...")
+    organisms_plot.create_graph()
+    reproductions_plot.create_graph()
+    print("✓ Plots saved:")
+    print("  - organisms_over_time.png")
+    print("  - herbivore_reproductions_over_time.png")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,7 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, List
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 if TYPE_CHECKING:
     from entities.gol_grid import GOLGrid
@@ -39,30 +42,39 @@ class StatisticsOverTimeAlert(BaseAlert):
             None, updated the graph with the new statistics
         """
 
-        t = np.arange(len(self.statistics_over_time))
+        # Get the number of steps (assuming all keys have same length)
+        first_key = list(self.statistics_over_time.keys())[0]
+        t = np.arange(len(self.statistics_over_time[first_key]))
+        
+        plt.figure(figsize=(10, 6))
         for key in self.statistics_over_time.keys():
             if self.keys_to_plot is not None and key not in self.keys_to_plot:
                 continue
-            plt.plot(t, self.statistics_over_time[key], label=key)
-        plt.legend()
-        plt.savefig(self.save_fig_path)
+            plt.plot(t, self.statistics_over_time[key], label=key.replace('_', ' ').title(), linewidth=2)
+        
+        plt.xlabel('Simulation Step', fontsize=12)
+        plt.ylabel('Count', fontsize=12)
+        plt.title('Statistics Over Time', fontsize=14, fontweight='bold')
+        plt.legend(loc='best', fontsize=10)
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.savefig(self.save_fig_path, dpi=150)
         plt.close()
     
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:
         """
-        Update the graph with the new statistics.
+        Collect statistics at each step (but don't generate plot yet).
         
         Args:
             gol_grid: The grid object of the simulation
             
         Returns:
-            None, updated the graph with the new statistics
+            None, just collecting data
         """
         current_stats = gol_grid.get_grid_stats()
         for key in current_stats.keys():
             if key not in self.statistics_over_time:
                 self.statistics_over_time[key] = []
             self.statistics_over_time[key].append(current_stats[key])
-        self.create_graph()
         return None
 
