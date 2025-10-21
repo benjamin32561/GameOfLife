@@ -67,11 +67,15 @@ class Herbivore(MobileEntity):
                 self.reset_mating_cooldown()
 
                 # generate a new herbivore in the grid
-                gol_grid.add_herbivore_to_random_neighboor(new_x, new_y)
+                success = gol_grid.add_entity_in_range(Herbivore, new_x, new_y, range_distance=1, exclude_center=True)
+                if success:
+                    gol_grid.record_stat('herbivore_reproduced', 1)
 
         # check if next position has a plant in it, if so 
         if gol_grid.is_object_type_in_cell(new_x, new_y, Plant):
+            plants_eaten = len([obj for obj in gol_grid.grid[new_x][new_y] if isinstance(obj, Plant)])
             gol_grid.grid[new_x][new_y] = [obj for obj in gol_grid.grid[new_x][new_y] if not isinstance(obj, Plant)]
             self.reset_ttl()
+            gol_grid.record_stat('plant_eaten_by_herbivore', plants_eaten)
 
         return True, new_x, new_y

@@ -4,13 +4,12 @@ if TYPE_CHECKING:
     from entities.gol_grid import GOLGrid
 
 from alerts.base_alert import BaseAlert
-from entities.herbivore import Herbivore
 
 
 class PredatorEatsHerbivoreAlert(BaseAlert):
     """
     Alert triggered when a predator eats a herbivore.
-    Tracks herbivore positions between steps to detect consumption.
+    Uses the statistics system to track herbivore consumption events.
     """
     
     def __init__(self) -> None:
@@ -24,30 +23,33 @@ class PredatorEatsHerbivoreAlert(BaseAlert):
             None, initialized the alert
         """
         super().__init__()
-        self.message = "A Predator ate an Herbivore"
-        self.previous_herbivore_coordinates = []
+        self.message = "A Predator ate a Herbivore"
+        self.previous_herbivores_eaten = 0
     
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:
         """
-        Detect if a predator ate a herbivore by comparing positions.
-        This alert keeps the locations of all herbivores from the previous step.
-        If a predator is now located where an herbivore was, one was eaten.
+        Detect if a predator ate a herbivore using the statistics system.
+        The grid tracks 'herbivore_eaten_by_predator' events automatically.
 
         Args:
             gol_grid: The grid object of the simulation
 
         Returns:
-            Alert message if a herbivore was eaten, None otherwise
+            Alert message if a herbivore was eaten since last check, None otherwise
         """
-        to_ret = None
-
-        current_herbivore_coordinates = gol_grid.get_all_cells_with_type(Herbivore)
-        if self.previous_herbivore_coordinates:
-            for x, y in self.previous_herbivore_coordinates:
-                if (x, y) not in current_herbivore_coordinates:
-                    to_ret = self.message
-                    break
+        grid_stats = gol_grid.get_grid_stats()
+        events = grid_stats['events']
+        current_herbivores_eaten = events.get('herbivore_eaten_by_predator', 0)
         
-        self.previous_herbivore_coordinates = current_herbivore_coordinates
-        return to_ret
+        # Check if herbivores were eaten since last check
+        if current_herbivores_eaten > self.previous_herbivores_eaten:
+            count = current_herbivores_eaten - self.previous_herbivores_eaten
+            self.previous_herbivores_eaten = current_herbivores_eaten
+            if count == 1:
+                return self.message
+            else:
+                return f"Predators ate {count} Herbivores"
+        
+        self.previous_herbivores_eaten = current_herbivores_eaten
+        return None
 

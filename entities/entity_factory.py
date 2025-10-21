@@ -1,4 +1,4 @@
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Type
 
 from entities.entity import Entity
 from entities.herbivore import Herbivore
@@ -12,6 +12,13 @@ class EntityFactory:
     Centralizes entity creation logic and configuration.
     """
     
+    # Class-level entity type mapping for converting string names to classes
+    ENTITY_TYPE_MAP = {
+        'Plant': Plant,
+        'Herbivore': Herbivore,
+        'Predator': Predator
+    }
+    
     def __init__(self, config: Dict[str, Any]) -> None:
         """
         Initialize the entity factory with configuration parameters.
@@ -21,6 +28,30 @@ class EntityFactory:
         """
         self.config = config
         self.params = config['parameters']
+    
+    def create_entity(self, entity_type: Type[Entity], x: int, y: int) -> Entity:
+        """
+        Create an entity of the specified type (generic factory method).
+        
+        Args:
+            entity_type: The class type of entity to create
+            x: X position
+            y: Y position
+            
+        Returns:
+            Entity instance of the specified type
+            
+        Raises:
+            ValueError: If entity_type is not supported
+        """
+        if entity_type == Plant or entity_type is Plant:
+            return self.create_plant(x, y)
+        elif entity_type == Herbivore or entity_type is Herbivore:
+            return self.create_herbivore(x, y)
+        elif entity_type == Predator or entity_type is Predator:
+            return self.create_predator(x, y)
+        else:
+            raise ValueError(f"Unknown entity type: {entity_type}")
     
     def create_plant(self, x: int, y: int) -> Plant:
         """

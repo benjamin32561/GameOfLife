@@ -24,10 +24,7 @@ from entities.predator import Predator
 # Hard-coded configuration
 CONFIG_FILE = "nature_example.yaml"
 DELAY_BETWEEN_STEPS = 0.0  # seconds
-CELL_SIZE = 40  # pixels
-OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video, or None to disable
-PRINT_GRID = False  # Set to True to print grid each step (slows down simulation significantly)
-PRINT_ALERTS = True  # Set to True to print alerts during simulation
+OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video
 
 
 def main() -> None:
@@ -41,12 +38,12 @@ def main() -> None:
     
     # Setup alert system
     alert_manager = AlertManager()
-    alert_manager.add_alert(ZeroStatsAlert('plants'))
-    alert_manager.add_alert(ZeroStatsAlert('herbivores'))
-    alert_manager.add_alert(ZeroStatsAlert('predators'))
+    alert_manager.add_alert(ZeroStatsAlert('plant'))
+    alert_manager.add_alert(ZeroStatsAlert('herbivore'))
+    alert_manager.add_alert(ZeroStatsAlert('predator'))
     alert_manager.add_alert(PredatorEatsHerbivoreAlert())
-    alert_manager.add_alert(EntityAboveThreshold('herbivores', 0.3))  # Alert when >30% of cells have herbivores
-    alert_manager.add_alert(EntityAboveThreshold('predators', 0.15))  # Alert when >15% of cells have predators
+    alert_manager.add_alert(EntityAboveThreshold('herbivore', 0.3))  # Alert when >30% of cells have herbivores
+    alert_manager.add_alert(EntityAboveThreshold('predator', 0.15))  # Alert when >15% of cells have predators
     
     # Setup statistics tracking and plotting
     alert_manager.add_alert(StatisticsOverTimeAlert('organisms_over_time.png', ['plants', 'herbivores', 'predators']))
@@ -76,7 +73,7 @@ def main() -> None:
             os.makedirs(output_dir)
         
         # Get first frame to determine size
-        first_frame = gol_grid.grid_to_image(cell_size=CELL_SIZE)
+        first_frame = gol_grid.grid_to_image()
         height, width = first_frame.shape[:2]
         
         # Setup video writer (5 fps)
@@ -107,12 +104,13 @@ def main() -> None:
         
         # Write frame to video if recording
         if video_writer:
-            frame = gol_grid.grid_to_image(cell_size=CELL_SIZE)
+            frame = gol_grid.grid_to_image()
             video_writer.write(frame)
         
         # Check if ecosystem is extinct
         stats = gol_grid.get_grid_stats()
-        if stats['plants'] == 0 and stats['herbivores'] == 0 and stats['predators'] == 0:
+        population = stats['population']
+        if population.get('plant', 0) == 0 and population.get('herbivore', 0) == 0 and population.get('predator', 0) == 0:
             print("\n*** Ecosystem extinct! Simulation ended early. ***")
             break
         
@@ -126,18 +124,8 @@ def main() -> None:
     print("\nSimulation complete!")
     print("\nFinal statistics:")
     final_stats = gol_grid.get_grid_stats()
-    print(f"  Plants: {final_stats['plants']}")
-    print(f"  Herbivores: {final_stats['herbivores']}")
-    print(f"  Predators: {final_stats['predators']}")
-    print(f"  Total Herbivore Reproductions: {final_stats['herbivore_reproductions']}")
-    
-    # Save all alerts to disk (plots, summaries, etc.)
-    print("\nSaving alerts to disk...")
-    alert_manager.save_all()
-    print("✓ Files saved:")
-    print("  - organisms_over_time.png")
-    print("  - herbivore_reproductions_over_time.png")
-    print("  - timeline_summary.txt")
+    print(f"  Population: {final_stats['population']}")
+    print(f"  Events: {final_stats['events']}")
 
 
 if __name__ == "__main__":

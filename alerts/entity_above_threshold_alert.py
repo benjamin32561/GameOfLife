@@ -17,7 +17,7 @@ class EntityAboveThreshold(BaseAlert):
         Initialize alert for tracking entity population thresholds.
 
         Args:
-            entity: The type of entity to monitor ('plants', 'herbivores', or 'predators')
+            entity: The type of entity to monitor (e.g., 'plant', 'herbivore', 'predator').
             threshold: If norm=True, this is density (0.0-1.0, entities per cell)
                       If norm=False, this is absolute count
             norm: If True, normalize threshold by grid size (density-based)
@@ -27,7 +27,9 @@ class EntityAboveThreshold(BaseAlert):
             None, initialized the alert
         """
         super().__init__()
-        self.entity = entity
+        # Normalize entity type name
+        self.entity = entity.lower()
+        self.entity_display = entity  # Keep original for display
         self.threshold = threshold
         self.norm = norm
         self.alerted = False  # Track if we've already alerted to avoid spam
@@ -49,7 +51,7 @@ class EntityAboveThreshold(BaseAlert):
         
         if threshold_exceeded and not self.alerted:
             self.alerted = True
-            self.message = f"{self.entity.capitalize()} density exceeded {self.threshold:.2%} (current: {current_density:.2%}, count: {current_count}/{grid_size} cells)"
+            self.message = f"{self.entity_display.capitalize()} density exceeded {self.threshold:.2%} (current: {current_density:.2%}, count: {current_count}/{grid_size} cells)"
             return self.message
         elif not threshold_exceeded:
             self.alerted = False
@@ -70,7 +72,7 @@ class EntityAboveThreshold(BaseAlert):
         
         if threshold_exceeded and not self.alerted:
             self.alerted = True
-            self.message = f"{self.entity.capitalize()} population exceeded {int(self.threshold)} (current: {current_count})"
+            self.message = f"{self.entity_display.capitalize()} population exceeded {int(self.threshold)} (current: {current_count})"
             return self.message
         elif not threshold_exceeded:
             self.alerted = False
@@ -90,7 +92,8 @@ class EntityAboveThreshold(BaseAlert):
             Alert message if threshold is exceeded (first time), None otherwise
         """
         grid_stats = gol_grid.get_grid_stats()
-        current_count = grid_stats[self.entity]
+        population = grid_stats['population']
+        current_count = population.get(self.entity, 0)
         
         if self.norm:
             return self._check_normalized_threshold(gol_grid, current_count)
