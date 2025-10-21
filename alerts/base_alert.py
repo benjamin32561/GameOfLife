@@ -10,11 +10,23 @@ class BaseAlert:
     Alerts monitor the simulation state and generate messages based on conditions.
     """
     
-    def __init__(self) -> None:
+    def __init__(self, save_path: Optional[str] = None) -> None:
         """
-        Initialize the base alert with an empty message.
+        Initialize the base alert with an empty message and optional save path.
+        
+        Args:
+            save_path: Optional path to save alert data to disk
         """
         self.message = ""
+        self.save_path = save_path
+
+    def save_to_disk(self) -> None:
+        """
+        Save the alert data to disk.
+        
+        Default implementation does nothing - subclasses override if they need to save.
+        """
+        pass
 
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:
         """

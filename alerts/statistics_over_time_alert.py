@@ -25,13 +25,12 @@ class StatisticsOverTimeAlert(BaseAlert):
         Returns:
             None, initialized the alert
         """
-        super().__init__()
+        super().__init__(save_path=save_fig_path)
         self.message = "Statistics over time"
-        self.save_fig_path = save_fig_path
         self.statistics_over_time = {}
         self.keys_to_plot = keys_to_plot
 
-    def create_graph(self) -> None:
+    def save_to_disk(self) -> None:
         """
         Create the graph with the new statistics.
 
@@ -41,7 +40,9 @@ class StatisticsOverTimeAlert(BaseAlert):
         Returns:
             None, updated the graph with the new statistics
         """
-
+        if not self.save_path or not self.statistics_over_time:
+            return
+        
         # Get the number of steps (assuming all keys have same length)
         first_key = list(self.statistics_over_time.keys())[0]
         t = np.arange(len(self.statistics_over_time[first_key]))
@@ -58,7 +59,7 @@ class StatisticsOverTimeAlert(BaseAlert):
         plt.legend(loc='best', fontsize=10)
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.savefig(self.save_fig_path, dpi=150)
+        plt.savefig(self.save_path, dpi=150)
         plt.close()
     
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:

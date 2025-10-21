@@ -21,7 +21,7 @@ class ZeroStatsAlert(BaseAlert):
         Returns:
             None, initialized the alert
         """
-        super().__init__()
+        super().__init__(save_path=None)
         self.stats_type = stats_type
         self.message = f"No {stats_type} entities left"
     

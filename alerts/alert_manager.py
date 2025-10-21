@@ -53,4 +53,12 @@ class AlertManager:
         messages = self.check_alerts(gol_grid)
         for message in messages:
             print(f"⚠️  ALERT: {message}")
+    
+    def save_all(self) -> None:
+        """
+        Save all alerts to disk.
+        Calls save_to_disk() on each alert (which may be a no-op for some alerts).
+        """
+        for alert in self.alerts:
+            alert.save_to_disk()
 

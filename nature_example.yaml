@@ -1,7 +1,7 @@
 simulation:
   width: 30
   height: 30
-  steps: 200   # total simulation steps
+  steps: 100   # total simulation steps
 
 parameters:
   # Lifespans

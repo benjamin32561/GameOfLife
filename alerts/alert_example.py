@@ -11,17 +11,17 @@ class ExampleAlert(BaseAlert):
     Alert triggered when a specific example alert is triggered.
     """
     
-    def __init__(self) -> None:
+    def __init__(self, save_path: Optional[str] = None) -> None:
         """
         Initialize alert for tracking example alert.
 
         Args:
-            None
+            save_path: Optional path to save alert data (not used for this alert type)
             
         Returns:
             None, initialized the alert
         """
-        super().__init__()
+        super().__init__(save_path=save_path)
         self.message = "Example alert"
     
     def get_message(self, gol_grid: 'GOLGrid') -> Optional[str]:

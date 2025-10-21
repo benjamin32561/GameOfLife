@@ -14,6 +14,7 @@ from alerts.alert_manager import AlertManager
 from alerts.entity_above_threshold_alert import EntityAboveThreshold
 from alerts.predator_eats_herbivore_alert import PredatorEatsHerbivoreAlert
 from alerts.statistics_over_time_alert import StatisticsOverTimeAlert
+from alerts.timeline_summary_alert import TimelineSummaryAlert
 from alerts.zero_stats_alert import ZeroStatsAlert
 from entities.gol_grid import GOLGrid
 from entities.herbivore import Herbivore
@@ -48,10 +49,9 @@ def main() -> None:
     alert_manager.add_alert(EntityAboveThreshold('predators', 0.15))  # Alert when >15% of cells have predators
     
     # Setup statistics tracking and plotting
-    organisms_plot = StatisticsOverTimeAlert('organisms_over_time.png', ['plants', 'herbivores', 'predators'])
-    reproductions_plot = StatisticsOverTimeAlert('herbivore_reproductions_over_time.png', ['herbivore_reproductions'])
-    alert_manager.add_alert(organisms_plot)
-    alert_manager.add_alert(reproductions_plot)
+    alert_manager.add_alert(StatisticsOverTimeAlert('organisms_over_time.png', ['plants', 'herbivores', 'predators']))
+    alert_manager.add_alert(StatisticsOverTimeAlert('herbivore_reproductions_over_time.png', ['herbivore_reproductions']))
+    alert_manager.add_alert(TimelineSummaryAlert('timeline_summary.txt'))
     
     num_steps = gol_grid.config['simulation']['steps']
     
@@ -131,13 +131,13 @@ def main() -> None:
     print(f"  Predators: {final_stats['predators']}")
     print(f"  Total Herbivore Reproductions: {final_stats['herbivore_reproductions']}")
     
-    # Generate plots at the end (much faster than generating every step!)
-    print("\nGenerating plots...")
-    organisms_plot.create_graph()
-    reproductions_plot.create_graph()
-    print("✓ Plots saved:")
+    # Save all alerts to disk (plots, summaries, etc.)
+    print("\nSaving alerts to disk...")
+    alert_manager.save_all()
+    print("✓ Files saved:")
     print("  - organisms_over_time.png")
     print("  - herbivore_reproductions_over_time.png")
+    print("  - timeline_summary.txt")
 
 
 if __name__ == "__main__":
