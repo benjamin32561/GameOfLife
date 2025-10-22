@@ -5,6 +5,7 @@ simulation:
   
   # Entity processing order (entities processed first have higher priority)
   order_to_process:
+    - Omnivore
     - Predator
     - Herbivore
     - Plant
@@ -19,6 +20,7 @@ simulation:
   # Entity colors for visualization (BGR format)
   entity_color_map:
     plant: [0, 255, 0]        # Bright green
+    omnivore: [255, 255, 0]  # Orange
     herbivore: [0, 255, 255]  # Yellow
     predator: [0, 0, 255]     # Red
   
@@ -33,13 +35,16 @@ parameters:
   plant_lifespan: 15         # T_plant
   T_herbivore: 25            # T_herbivore
   T_predator: 15             # T_predator
+  T_omnivore: 20             # T_omnivore
 
   # Sight radius
   R_herbivore_sight: 5       # radius in which herbivores can see plants
   R_predator_sight: 3        # radius in which predators can see herbivores
+  R_omnivore_sight: 4        # radius in which omnivores can see plants/herbivores/predators
 
   # Reproduction cooldown
   T_cooldown_herbivore: 2
+  T_cooldown_omnivore: 3
 
 initial_state:
   plants:
@@ -85,3 +90,9 @@ initial_state:
     - {x: 6, y: 6}
     - {x: 8, y: 7}
     - {x: 24, y: 12}
+
+  omnivores:
+    - {x: 10, y: 10}
+    - {x: 15, y: 20}
+    - {x: 20, y: 15}
+    - {x: 5, y: 25}

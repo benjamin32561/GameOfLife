@@ -52,7 +52,7 @@ class Herbivore(MobileEntity):
         self.ttl -= 1
 
         # move towards the closest plant or randomly
-        new_x, new_y = self.get_next_position(gol_grid, Plant)
+        new_x, new_y = self.get_next_position(gol_grid, [Plant])
         
         # check if next position contains a herbivore, if so,
         # reproduce, spawning another herbivore in a random neighboring cell.

@@ -32,7 +32,7 @@ class Predator(MobileEntity):
         self.ttl -= 1
 
         # move towards the closest plant
-        new_x, new_y = self.get_next_position(gol_grid, Herbivore)
+        new_x, new_y = self.get_next_position(gol_grid, [Herbivore])
         
         # check if next position contains a herbivore, if so,
         # remove it, and reset the ttl of the current predator

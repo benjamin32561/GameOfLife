@@ -1,6 +1,6 @@
 import math
 import random
-from typing import TYPE_CHECKING, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Optional, Tuple, Type, List
 
 from entities.entity import Entity
 
@@ -36,28 +36,28 @@ class MobileEntity(Entity):
         all_possible_steps = gol_grid.get_all_possible_steps(self.x, self.y)
         return random.choice(all_possible_steps) 
 
-    def get_closest_object_coordinates(self, gol_grid: 'GOLGrid', object_type: Type[Entity]) -> Tuple[int, int]:
+    def get_closest_object_coordinates(self, gol_grid: 'GOLGrid', object_type_list: List[Type[Entity]]) -> Tuple[int, int]:
         """
         Find the closest object of a given type.
 
         args:
             gol_grid: the grid object of the simulation
-            object_type: the type of object to find
+            object_type_list: the types of objects to find
 
         returns:
             the x and y position of the closest object
             -1, -1 if no object is found
         """
-        all_cells_with_objects = gol_grid.get_all_cells_with_type(object_type)
-        
-        # get closest one
         closest_coords = (-1, -1)
         closest_distance = float('inf')
-        for x, y in all_cells_with_objects:
-            distance = math.sqrt((self.x-x)**2+(self.y-y)**2)
-            if distance < closest_distance and distance <= self.sight_radius:
-                closest_distance = distance
-                closest_coords = (x, y)
+        for object_type in object_type_list:
+            all_cells_with_objects = gol_grid.get_all_cells_with_type(object_type)
+            for x, y in all_cells_with_objects:
+                distance = math.sqrt((self.x-x)**2+(self.y-y)**2)
+                if distance < closest_distance and distance <= self.sight_radius:
+                    closest_distance = distance
+                    closest_coords = (x, y)
+
         return closest_coords
 
     def get_next_position_towards_object(self, gol_grid: 'GOLGrid', target_x: int, target_y: int) -> Tuple[int, int]:
