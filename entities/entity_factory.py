@@ -2,6 +2,7 @@ from typing import Dict, Any, List, Tuple, Type
 
 from entities.entity import Entity
 from entities.herbivore import Herbivore
+from entities.omnivore import Omnivore
 from entities.plant import Plant
 from entities.predator import Predator
 
@@ -14,9 +15,10 @@ class EntityFactory:
     
     # Class-level entity type mapping for converting string names to classes
     ENTITY_TYPE_MAP = {
+        'Omnivore': Omnivore,
         'Plant': Plant,
         'Herbivore': Herbivore,
-        'Predator': Predator
+        'Predator': Predator,
     }
     
     def __init__(self, config: Dict[str, Any]) -> None:
@@ -50,6 +52,8 @@ class EntityFactory:
             return self.create_herbivore(x, y)
         elif entity_type == Predator or entity_type is Predator:
             return self.create_predator(x, y)
+        elif entity_type == Omnivore or entity_type is Omnivore:
+            return self.create_omnivore(x, y)
         else:
             raise ValueError(f"Unknown entity type: {entity_type}")
     
@@ -100,7 +104,26 @@ class EntityFactory:
             self.params['T_predator'],
             self.params['R_predator_sight']
         )
+
+    def create_omnivore(self, x: int, y: int) -> Omnivore:
+        """
+        Create an omnivore entity.
+        
+        Args:
+            x: X position
+            y: Y position
+            
+        Returns:
     
+            Omnivore instance
+        """
+        return Omnivore(
+            x, y,
+            self.params['T_omnivore'],
+            self.params['R_omnivore_sight'],
+            self.params['T_cooldown_omnivore']
+        )
+
     def create_initial_entities(self) -> List[Tuple[Entity, int, int]]:
         """
         Create all initial entities from configuration.
@@ -129,6 +152,12 @@ class EntityFactory:
             x, y = pred_data['x'], pred_data['y']
             predator = self.create_predator(x, y)
             entities.append((predator, x, y))
+        
+        # Add omnivores
+        for omn_data in self.config['initial_state']['omnivores']:
+            x, y = omn_data['x'], omn_data['y']
+            omnivore = self.create_omnivore(x, y)
+            entities.append((omnivore, x, y))
         
         return entities
 
