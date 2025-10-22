@@ -20,7 +20,6 @@ from entities.predator import Predator
 
 # Hard-coded configuration
 CONFIG_FILE = "nature_example.yaml"
-DELAY_BETWEEN_STEPS = 0.0  # seconds
 OUTPUT_VIDEO = "t.mp4"  # Set to filename like "output.mp4" to record video
 
 
@@ -48,7 +47,6 @@ def main() -> None:
     print("=" * 60)
     print(f"Grid size: {gol_grid.width} x {gol_grid.height}")
     print(f"Running for {num_steps} steps")
-    print(f"Delay between steps: {DELAY_BETWEEN_STEPS}s")
     print("\nLegend:")
     print("  P = Plant (green)")
     print("  H = Herbivore (yellow)")
@@ -105,9 +103,7 @@ def main() -> None:
         if population.get('plant', 0) == 0 and population.get('herbivore', 0) == 0 and population.get('predator', 0) == 0:
             print("\n*** Ecosystem extinct! Simulation ended early. ***")
             break
-        
-        sleep(DELAY_BETWEEN_STEPS)
-    
+            
     # Release video writer
     if video_writer:
         video_writer.release()
